@@ -1012,7 +1012,12 @@
             
             isTransitioningCamera = true;
             let size = 2 + Math.floor((level - 1) / 5);
-            targetCameraPos.set(0, size * 2.5 + 2, size * 2.5 + 2);
+            
+            // Ekran oranına göre kamerayı uzaklaştırma (Özellikle dik ekranlı telefonlar için sığdırma)
+            let aspectFactor = window.innerWidth < window.innerHeight ? (window.innerHeight / window.innerWidth) : 1;
+            let menuCamDist = (size * 2.5 + 2) * aspectFactor;
+            
+            targetCameraPos.set(0, menuCamDist, menuCamDist);
             targetCameraTarget.set(0, 0, 0);
             
             loadLevel(); // Menüdeyken de arkaplanda labirenti oluşturur
@@ -1041,7 +1046,11 @@
             if(level <= 2) timeLimit = 60; // İlk 2 bölüm için ekstra zaman
             startTimer(timeLimit);
 
-            targetCameraPos.set(size * 1.8, size * 1.8, size * 1.8);
+            // Dinamik kamera uzaklığı: Telefonlarda (dikey ekran) küplerin ekrandan taşmasını engeller.
+            let aspectFactor = window.innerWidth < window.innerHeight ? (window.innerHeight / window.innerWidth) : 1;
+            let camDist = size * 1.8 * aspectFactor;
+            
+            targetCameraPos.set(camDist, camDist, camDist);
             targetCameraTarget.set(0, 0, 0);
             
             let tutEl = document.getElementById('tutorial-text');

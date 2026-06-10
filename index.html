@@ -208,8 +208,9 @@
         #main-menu-screen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-end; padding-bottom: 20px; z-index: 5;
+            align-items: center; justify-content: flex-end; padding-bottom: 30px; z-index: 5;
             transition: opacity 0.5s;
+            box-sizing: border-box;
         }
         .menu-title {
             position: absolute; top: 15%; font-size: 80px; font-weight: 900;
@@ -258,7 +259,7 @@
         #timer-text.danger { animation: pulseRed 0.5s infinite; color: #ff4757 !important; }
         
         @media (max-width: 600px) {
-            #main-menu-screen { padding-bottom: 100px; } /* Butonları daha yukarı kaydırmak için alt boşluk artırıldı */
+            #main-menu-screen { padding-bottom: 80px; } /* box-sizing eklendiği için artık yukarı itecek */
             #level-text { font-size: 20px; top: 70px; white-space: nowrap; } /* Butonların altına alındı */
             #gold-text { font-size: 14px; padding: 6px 12px; top: 20px; right: 10px; }
             #btn-hamburger, #btn-home { font-size: 14px; padding: 6px 12px; top: 20px; left: 10px; }

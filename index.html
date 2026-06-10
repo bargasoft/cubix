@@ -1002,6 +1002,14 @@
             document.getElementById('btn-hamburger').style.display = 'flex';
             document.getElementById('victory-screen').classList.remove('show');
             
+            // HATA DÜZELTİLDİ: Oyunu kaybedip menüye dönünce Game Over ekranı açık kalıyordu
+            let goScreen = document.getElementById('gameover-screen');
+            if (goScreen) {
+                goScreen.style.opacity = '0';
+                goScreen.style.pointerEvents = 'none';
+                goScreen.style.display = 'none';
+            }
+            
             isTransitioningCamera = true;
             let size = 2 + Math.floor((level - 1) / 5);
             targetCameraPos.set(0, size * 2.5 + 2, size * 2.5 + 2);

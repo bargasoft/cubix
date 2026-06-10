@@ -704,7 +704,8 @@
                 gainNode.connect(audioCtx.destination);
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                 if (slideFreq) osc.frequency.exponentialRampToValueAtTime(slideFreq, audioCtx.currentTime + duration);
-                gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(vol, audioCtx.currentTime + 0.02); // Yumuşak başlangıç (hışırtı önleyici)
                 gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
                 osc.start();
                 osc.stop(audioCtx.currentTime + duration);
@@ -776,7 +777,7 @@
                     osc.frequency.value = freq;
                     
                     gain.gain.setValueAtTime(0, audioCtx.currentTime);
-                    gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + duration * 0.4);
+                    gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + duration * 0.4); // Ses şiddeti düşürüldü
                     gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
                     
                     osc.connect(gain);
@@ -830,7 +831,7 @@
                     osc.frequency.value = notes[index];
                     
                     gain.gain.setValueAtTime(0, audioCtx.currentTime);
-                    gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
+                    gain.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.05); // Ses şiddeti düşürüldü
                     gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
                     
                     osc.connect(gain);

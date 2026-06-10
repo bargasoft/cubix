@@ -1092,8 +1092,8 @@
             
             let size = 2 + Math.floor((level - 1) / 5);
             
-            // Yeni ve dengeli süre hesaplaması: Toplam blok sayısı * 1.2 saniye. En az 25 saniye.
-            let timeLimit = Math.max(25, Math.floor(blocks.length * 1.2));
+            // Yeni ve dengeli süre hesaplaması: Toplam blok sayısı * 1.05 saniye. En az 25 saniye.
+            let timeLimit = Math.max(25, Math.floor(blocks.length * 1.05));
             if(level <= 2) timeLimit = 60; // İlk 2 bölüm için ekstra zaman
             startTimer(timeLimit);
 

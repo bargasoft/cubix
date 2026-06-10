@@ -258,13 +258,20 @@
         #timer-text.danger { animation: pulseRed 0.5s infinite; color: #ff4757 !important; }
         
         @media (max-width: 600px) {
+            #main-menu-screen { padding-bottom: max(40px, env(safe-area-inset-bottom) + 20px); } /* Oyna butonunun alt kısmı kesilmesin */
             #level-text { font-size: 20px; top: 70px; white-space: nowrap; } /* Butonların altına alındı */
             #gold-text { font-size: 14px; padding: 6px 12px; top: 20px; right: 10px; }
             #btn-hamburger, #btn-home { font-size: 14px; padding: 6px 12px; top: 20px; left: 10px; }
             #timer-text { font-size: 16px; top: 100px; padding: 3px 15px; } /* Bölüm yazısının altına alındı */
             .menu-title { font-size: 12vw; letter-spacing: 2px; -webkit-text-stroke: 2px #1e272e; top: 10%; } /* Dinamik font boyutu */
             .play-big-btn { padding: 15px 40px; font-size: 22px; }
-            .level-nav-container { margin-bottom: 30px; } /* Oyna butonuyla mesafe açıldı */
+            
+            /* Bölüm Navigasyon Barını Ekrana Sığdır */
+            .level-nav-container { margin-bottom: 20px; gap: 8px; }
+            .level-nav-btn { width: 35px; height: 35px; font-size: 14px; }
+            #level-nodes-container { gap: 8px; }
+            .level-node { width: 40px; height: 40px; border-width: 2px; font-size: 16px; }
+            
             #victory-title { font-size: 32px; }
             #gameover-screen h1 { font-size: 38px !important; }
             #gameover-screen p { font-size: 16px !important; }

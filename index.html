@@ -249,6 +249,8 @@
             box-shadow: 0px 10px 20px rgba(255, 159, 67, 0.5); transition: transform 0.2s; letter-spacing: 2px;
         }
         .play-big-btn:active { transform: scale(0.95); }
+        @keyframes pulseRed { 0% { color: #ff4757; transform: scale(1); } 50% { color: #ff7675; transform: scale(1.1); } 100% { color: #ff4757; transform: scale(1); } }
+        #timer-text.danger { animation: pulseRed 0.5s infinite; color: #ff4757 !important; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -257,8 +259,15 @@
     <div id="ui-container">
         <div id="tutorial-text" style="display:none; position:absolute; top:80px; left:50%; transform:translateX(-50%); color:white; font-size:20px; font-weight:bold; text-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index:10; text-align:center; pointer-events:none; width:90%;"></div>
         <div id="stage-announce" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(0.5); opacity:0; color:#feca57; font-size:60px; font-weight:900; text-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index:100; pointer-events:none; transition:all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></div>
+        <div id="gameover-screen" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:200; align-items:center; justify-content:center; flex-direction:column; pointer-events:none; opacity:0; transition:opacity 0.3s;">
+            <h1 style="color:#ff4757; font-size:50px; font-weight:900; text-shadow:0 0 20px #ff4757;">SÜRE BİTTİ!</h1>
+            <p style="color:white; font-size:20px; margin-bottom:30px; text-align:center; padding: 0 20px;">Zamana karşı yarışıyordun, biraz daha hızlı olmalısın!</p>
+            <button onclick="retryLevel()" style="padding:15px 40px; font-size:24px; font-weight:bold; background:linear-gradient(45deg, #1dd1a1, #10ac84); color:white; border:none; border-radius:30px; cursor:pointer; pointer-events:auto; box-shadow:0 5px 15px rgba(29, 209, 161, 0.4);">Tekrar Dene</button>
+            <button onclick="goToMenu()" style="margin-top:15px; padding:10px 30px; font-size:20px; background:transparent; color:white; border:2px solid white; border-radius:30px; cursor:pointer; pointer-events:auto;">Menüye Dön</button>
+        </div>
         <div id="top-bar">
             <div id="level-text">Bölüm 1</div>
+            <div id="timer-text" style="display:none; color:white; font-weight:bold; font-size:20px; background:rgba(0,0,0,0.4); padding:5px 15px; border-radius:15px;">⏱ <span id="timer-amount">0</span>s</div>
             <div id="gold-text">🪙 <span id="gold-amount">0</span></div>
             <button id="btn-hamburger"><span style="font-size:22px;">☰</span> Market</button>
             <button id="btn-home" onclick="goToMenu()">🏠 Menü</button>
@@ -438,6 +447,59 @@
         let level = parseInt(localStorage.getItem('arrowMaze_level')) || 1;
         document.getElementById('level-text').innerText = "Level " + level;
         
+        let timerInterval = null;
+        let timeLeft = 0;
+
+        function startTimer(seconds) {
+            stopTimer();
+            timeLeft = seconds;
+            let timerEl = document.getElementById('timer-text');
+            let timerAmt = document.getElementById('timer-amount');
+            timerEl.style.display = 'block';
+            timerEl.classList.remove('danger');
+            timerAmt.innerText = timeLeft;
+
+            timerInterval = setInterval(() => {
+                if(gameState !== 'PLAYING') { stopTimer(); return; }
+                timeLeft--;
+                timerAmt.innerText = timeLeft;
+                if(timeLeft <= 5 && timeLeft > 0) {
+                    timerEl.classList.add('danger');
+                    if(typeof SoundEngine !== 'undefined') SoundEngine.playStuck();
+                }
+                if(timeLeft <= 0) {
+                    stopTimer();
+                    gameOver();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if(timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            document.getElementById('timer-text').style.display = 'none';
+        }
+
+        function gameOver() {
+            gameState = 'GAMEOVER';
+            let goScreen = document.getElementById('gameover-screen');
+            goScreen.style.display = 'flex';
+            setTimeout(() => goScreen.style.opacity = '1', 10);
+            goScreen.style.pointerEvents = 'auto';
+            if(typeof SoundEngine !== 'undefined') SoundEngine.playStuck();
+        }
+
+        function retryLevel() {
+            let goScreen = document.getElementById('gameover-screen');
+            goScreen.style.opacity = '0';
+            goScreen.style.pointerEvents = 'none';
+            setTimeout(() => {
+                goScreen.style.display = 'none';
+                loadLevel();
+                startGameplay();
+            }, 300);
+        }
+
         let gold = parseInt(localStorage.getItem('arrowMaze_gold')) || 0;
         document.getElementById('gold-amount').innerText = gold;
 
@@ -916,6 +978,7 @@
         }
 
         function goToMenu() {
+            if(typeof stopTimer === 'function') stopTimer();
             gameState = 'MENU';
             document.getElementById('main-menu-screen').style.opacity = '1';
             document.getElementById('main-menu-screen').style.pointerEvents = 'auto';
@@ -949,6 +1012,11 @@
             if(typeof MusicEngine !== 'undefined') MusicEngine.startGameMusic();
             
             let size = 2 + Math.floor((level - 1) / 5);
+            
+            let timeLimit = 20 + (size * 5) + (level % 5) * 5;
+            if(level <= 2) timeLimit = 60; // İlk 2 bölüm için ekstra zaman
+            startTimer(timeLimit);
+
             targetCameraPos.set(size * 1.8, size * 1.8, size * 1.8);
             targetCameraTarget.set(0, 0, 0);
             
@@ -1303,6 +1371,7 @@
 
             if(blocks.length === 0 && !isLevelComplete && gameState === 'PLAYING') {
                 isLevelComplete = true;
+                if(typeof stopTimer === 'function') stopTimer();
                 SoundEngine.playVictory();
                 ParticleEngine.spawnGoldConfetti();
                 

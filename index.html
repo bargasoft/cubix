@@ -1,0 +1,1403 @@
+<!--
+  Copyright (c) 2026. All Rights Reserved.
+  This software and associated documentation files (the "Software") are proprietary and confidential.
+  Unauthorized copying, distribution, modification, or use of this Software, via any medium, is strictly prohibited.
+-->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cubix v1.0</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; transition: background-color 0.5s; }
+        
+        #ui-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;
+            display: flex; flex-direction: column;
+        }
+        #top-bar {
+            position: relative; width: 100%; padding: 30px; box-sizing: border-box;
+        }
+        #level-text {
+            position: absolute; left: 50%; transform: translateX(-50%); top: 30px;
+            font-size: 36px; font-weight: 900; color: #1e272e; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: color 0.5s;
+        }
+        #gold-text {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 20px;
+            font-weight: 800;
+            color: #f1c40f;
+            background: rgba(30, 39, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            pointer-events: auto;
+            z-index: 15;
+        }
+
+        #btn-hamburger {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+            background: rgba(30, 39, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            pointer-events: auto;
+            z-index: 41;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #btn-hamburger:hover { transform: scale(1.05); }
+
+        #sidebar {
+            position: absolute; top: 70px; left: 20px; width: 200px; height: auto;
+            background: rgba(30, 39, 46, 0.95); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 40; border-radius: 15px;
+            transition: opacity 0.2s, transform 0.2s;
+            display: flex; flex-direction: column; padding: 10px; box-sizing: border-box;
+            opacity: 0; pointer-events: none; transform: translateY(-10px);
+        }
+        #sidebar.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        #sidebar-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 39; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        #sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+        
+        .sidebar-btn {
+            background: transparent; border: none; border-radius: 8px; padding: 10px 15px;
+            font-size: 16px; font-weight: bold; color: #ffffff; cursor: pointer;
+            transition: background 0.2s; display: flex; align-items: center; gap: 10px;
+            width: 100%; text-align: left;
+        }
+        .sidebar-btn:hover { background: rgba(255,255,255,0.1); }
+
+        #btn-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+            background: rgba(30, 39, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            pointer-events: auto;
+            display: none;
+            z-index: 15;
+        }
+        #btn-home:hover { transform: scale(1.05); }
+        
+        #shop-screen, #settings-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+        }
+        .shop-card {
+            background: white;
+            padding: 30px;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        }
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        .shop-item:hover { transform: translateY(-2px); }
+        .shop-item-name { font-weight: bold; color: #2d3436; }
+        .shop-item-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-buy { background: #f1c40f; color: #fff; }
+        .btn-equip { background: #0984e3; color: #fff; }
+        .btn-equipped { background: #2ecc71; color: #fff; cursor: default; }
+
+        /* Başarı Ekranı Animasyonları */
+        #victory-screen {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            background: rgba(255, 255, 255, 0.95); padding: 40px 50px; border-radius: 30px; width: 320px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); backdrop-filter: blur(10px);
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+            opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 20;
+        }
+        #victory-screen.show {
+            opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto;
+        }
+        #victory-title {
+            font-size: 30px; font-weight: 900; color: #2ed573; margin: 0; text-align: center;
+        }
+        #victory-gold {
+            font-size: 42px; font-weight: 900; color: #f1c40f; margin: 0; text-shadow: 0 4px 10px rgba(241, 196, 15, 0.3);
+        }
+        
+        /* Çarpan Barı (Multiplier Bar) CSS */
+        #multiplier-container {
+            width: 100%; height: 40px; border-radius: 20px; position: relative; margin: 10px 0; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .multiplier-zones {
+            display: flex; width: 100%; height: 100%;
+        }
+        .zone {
+            flex: 1; display: flex; justify-content: center; align-items: center; font-weight: 900; color: white; font-size: 16px;
+        }
+        .zone-x2 { background: #74b9ff; }
+        .zone-x3 { background: #0984e3; }
+        .zone-x5 { background: #ff7675; }
+        
+        #multiplier-slider {
+            position: absolute; top: 0; left: 0%; width: 6px; height: 100%; background: #2d3436; 
+            transform: translateX(-50%); transition: none; pointer-events: none; border-radius: 3px; z-index: 5;
+        }
+        .victory-btn {
+            width: 100%; padding: 15px; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; transition: transform 0.1s;
+        }
+        .victory-btn:active { transform: scale(0.95); }
+        .btn-ad { background: linear-gradient(135deg, #f1c40f, #e67e22); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); box-shadow: 0 4px 10px rgba(241, 196, 15, 0.4); margin-bottom: 5px; }
+        .btn-normal { background: transparent; color: #b2bec3; font-size: 14px; text-decoration: underline; padding: 5px; }
+        
+        #main-menu-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-end; padding-bottom: 20px; z-index: 5;
+            transition: opacity 0.5s;
+        }
+        .menu-title {
+            position: absolute; top: 15%; font-size: 80px; font-weight: 900;
+            letter-spacing: 5px; pointer-events: auto;
+            -webkit-text-stroke: 3px #1e272e;
+            text-shadow: 
+                0px 6px 0px #1e272e, 
+                0px 15px 25px rgba(0,0,0,0.6);
+            animation: floatLogo 4s ease-in-out infinite;
+        }
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0) rotate(-2deg); }
+            50% { transform: translateY(-15px) rotate(2deg); }
+        }
+        .level-nav-container {
+            display: flex; align-items: center; gap: 15px; margin-bottom: 15px; pointer-events: auto;
+        }
+        .level-nav-btn {
+            background: rgba(30,39,46,0.6); border: 2px solid rgba(255,255,255,0.1);
+            color: white; font-size: 16px; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .level-nav-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
+        #level-nodes-container {
+            display: flex; gap: 15px;
+        }
+        .level-node {
+            width: 50px; height: 50px; border-radius: 50%;
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(5px);
+            border: 3px solid rgba(255,255,255,0.5); display: flex;
+            align-items: center; justify-content: center; font-size: 20px; font-weight: bold;
+            color: white; transition: all 0.3s; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+        }
+        .level-node.completed { background: #1dd1a1; border-color: #10ac84; }
+        .level-node.current { background: #feca57; border-color: #ff9f43; transform: scale(1.2); box-shadow: 0px 0px 20px #feca57; }
+        .level-node.locked { background: rgba(0,0,0,0.3); color: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.1); }
+        .play-big-btn {
+            padding: 20px 60px; font-size: 28px; font-weight: 900;
+            background: linear-gradient(45deg, #ff9f43, #e15f41); color: white;
+            border: none; border-radius: 40px; cursor: pointer; pointer-events: auto;
+            box-shadow: 0px 10px 20px rgba(255, 159, 67, 0.5); transition: transform 0.2s; letter-spacing: 2px;
+        }
+        .play-big-btn:active { transform: scale(0.95); }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="ui-container">
+        <div id="tutorial-text" style="display:none; position:absolute; top:80px; left:50%; transform:translateX(-50%); color:white; font-size:20px; font-weight:bold; text-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index:10; text-align:center; pointer-events:none; width:90%;"></div>
+        <div id="stage-announce" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(0.5); opacity:0; color:#feca57; font-size:60px; font-weight:900; text-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index:100; pointer-events:none; transition:all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></div>
+        <div id="top-bar">
+            <div id="level-text">Bölüm 1</div>
+            <div id="gold-text">🪙 <span id="gold-amount">0</span></div>
+            <button id="btn-hamburger"><span style="font-size:22px;">☰</span> Market</button>
+            <button id="btn-home" onclick="goToMenu()">🏠 Menü</button>
+        </div>
+        
+        <div id="sidebar-overlay" onclick="closeSidebar()"></div>
+        <div id="sidebar">
+            <button class="sidebar-btn" onclick="openShopFromSidebar()">🛒 Market Seçenekleri</button>
+            <button class="sidebar-btn" onclick="openSettingsFromSidebar()">⚙️ Ayarlar</button>
+        </div>
+        <div id="shop-screen">
+            <div class="shop-card">
+                <h1 style="margin-top:0; color:#2d3436; font-size:28px;">Market 🛒</h1>
+                <p style="color:#636e72; margin-bottom:20px; font-weight:bold;">Bakiye: <span id="shop-gold-amount" style="color:#f1c40f;">0</span> 🪙</p>
+                <div id="shop-items-container"></div>
+                <button id="btn-close-shop" style="margin-top:15px; padding:12px 30px; border:none; background:#ff7675; color:white; font-weight:bold; border-radius:12px; cursor:pointer; width:100%;">Kapat</button>
+            </div>
+        </div>
+        <div id="settings-screen">
+            <div class="shop-card">
+                <h1 style="margin-top:0; color:#2d3436; font-size:28px;">Ayarlar ⚙️</h1>
+                <div class="shop-item">
+                    <span class="shop-item-name">Ses Efektleri</span>
+                    <button id="btn-toggle-sound" class="shop-item-btn" style="background:#1dd1a1; color:white;" onclick="SoundEngine.toggleMute()">AÇIK</button>
+                </div>
+                <div class="shop-item">
+                    <span class="shop-item-name">Arka Plan Müziği</span>
+                    <button id="btn-toggle-music" class="shop-item-btn" style="background:#1dd1a1; color:white;" onclick="MusicEngine.toggleMute()">AÇIK</button>
+                </div>
+                <div class="shop-item" style="margin-top:20px;">
+                    <span class="shop-item-name" style="color:#e74c3c;">İlerlemeyi Sıfırla</span>
+                    <button class="shop-item-btn" style="background:#e74c3c; color:white;" onclick="resetGameProgress()">SIFIRLA</button>
+                </div>
+                <button id="btn-close-settings" style="margin-top:15px; padding:12px 30px; border:none; background:#ff7675; color:white; font-weight:bold; border-radius:12px; cursor:pointer; width:100%;" onclick="closeSettings()">Kapat</button>
+            </div>
+        </div>
+        <div id="main-menu-screen">
+            <div class="menu-title">
+                <span style="color:#ff4757">C</span><span style="color:#feca57">U</span><span style="color:#1dd1a1">B</span><span style="color:#54a0ff">I</span><span style="color:#5f27cd">X</span>
+            </div>
+            <div class="level-nav-container">
+                <button class="level-nav-btn" onclick="scrollLevelView(-1)">&#10094;</button>
+                <div id="level-nodes-container"></div>
+                <button class="level-nav-btn" onclick="scrollLevelView(1)">&#10095;</button>
+            </div>
+            <button class="play-big-btn" id="btn-play-big">OYNA</button>
+        </div>
+        <div id="victory-screen">
+            <h2 id="victory-title">Bölüm Tamamlandı!</h2>
+            <div id="victory-gold">+<span id="victory-gold-amount">0</span> 🪙</div>
+            
+            <div id="multiplier-container">
+                <div class="multiplier-zones">
+                    <div class="zone zone-x2">x2</div>
+                    <div class="zone zone-x3">x3</div>
+                    <div class="zone zone-x5">x5</div>
+                    <div class="zone zone-x3">x3</div>
+                    <div class="zone zone-x2">x2</div>
+                </div>
+                <div id="multiplier-slider"></div>
+            </div>
+            
+            <button id="btn-multiply" class="victory-btn btn-ad">
+                <span id="multiplier-text">x2</span> KATLA!
+            </button>
+            <button id="btn-claim" class="victory-btn btn-normal">Normal Al</button>
+        </div>
+    </div>
+
+    <script>
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#f8f9fa');
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(10, 10, 10);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; 
+        controls.enablePan = false;    
+
+        let gameState = 'MENU'; // 'MENU', 'PLAYING'
+        let targetCameraPos = new THREE.Vector3();
+        let targetCameraTarget = new THREE.Vector3();
+        let isTransitioningCamera = false;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+        scene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        dirLight.position.set(10, 20, 10);
+        scene.add(dirLight);
+
+        function createCleanArrowTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = 'rgba(0,0,0,0)';
+            ctx.fillRect(0,0,256,256);
+            
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 24;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            ctx.beginPath();
+            ctx.moveTo(128, 200);
+            ctx.lineTo(128, 80);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(70, 130);
+            ctx.lineTo(128, 70);
+            ctx.lineTo(186, 130);
+            ctx.stroke();
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return new THREE.MeshBasicMaterial({ map: tex, transparent: true });
+        }
+
+        function createWrapArrowTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = 'rgba(0,0,0,0)';
+            ctx.fillRect(0,0,1024,256);
+            
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 20;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            for(let i=0; i<4; i++) {
+                let ox = i * 256;
+                ctx.beginPath();
+                ctx.moveTo(ox + 128, 170); 
+                ctx.lineTo(ox + 128, 80);  
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(ox + 80, 120);
+                ctx.lineTo(ox + 128, 70);
+                ctx.lineTo(ox + 176, 120);
+                ctx.stroke();
+            }
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false });
+        }
+
+        let arrowMat = createCleanArrowTexture();
+        let wrapArrowMat = createWrapArrowTexture();
+
+        const BLOCK_COLORS = [0xff6b6b, 0xff9ff3, 0x48dbfb, 0x1dd1a1, 0xfeca57, 0x54a0ff];
+        const BLOCK_MATERIALS = BLOCK_COLORS.map(c => new THREE.MeshPhongMaterial({ color: c, shininess: 60 }));
+
+        const DIRS = [
+            new THREE.Vector3(1,0,0), new THREE.Vector3(-1,0,0),
+            new THREE.Vector3(0,1,0), new THREE.Vector3(0,-1,0),
+            new THREE.Vector3(0,0,1), new THREE.Vector3(0,0,-1)
+        ];
+
+        const planeGeo = new THREE.PlaneGeometry(0.85, 0.85);
+
+        const mazeGroup = new THREE.Group();
+        scene.add(mazeGroup);
+
+        let blocks = [];
+        let isLevelComplete = false;
+        let level = parseInt(localStorage.getItem('arrowMaze_level')) || 1;
+        document.getElementById('level-text').innerText = "Level " + level;
+        
+        let gold = parseInt(localStorage.getItem('arrowMaze_gold')) || 0;
+        document.getElementById('gold-amount').innerText = gold;
+
+        let unlockedShapes = JSON.parse(localStorage.getItem('arrowMaze_unlockedShapes')) || ['cube'];
+        let currentShape = localStorage.getItem('arrowMaze_currentShape') || 'cube';
+        
+        const SHAPES = {
+            'cube': { name: 'Klasik Küp', cost: 0, geo: new THREE.BoxGeometry(0.95, 0.95, 0.95), arrowDist: 0.476, arrowScale: 1, arrowType: 'plane' },
+            'sphere': { name: 'Pürüzsüz Küre', cost: 50, geo: new THREE.SphereGeometry(0.45, 32, 32), arrowDist: 0.46, arrowScale: 0.8, arrowType: 'wrap' },
+            'diamond': { name: 'Elmas Kesim', cost: 150, geo: new THREE.OctahedronGeometry(0.48, 0), arrowDist: 0.49, arrowScale: 0.4, arrowType: 'faces' },
+            'gem': { name: 'Kristal Cevher', cost: 300, geo: new THREE.IcosahedronGeometry(0.48, 0), arrowDist: 0.49, arrowScale: 0.25, arrowType: 'faces' }
+        };
+
+        function getGeometryFaces(geo) {
+            if (geo.userData.faces) return geo.userData.faces;
+            let faces = [];
+            let posAttr = geo.attributes.position;
+            let index = geo.index;
+            if (index) {
+                for(let i=0; i<index.count; i+=3) {
+                    let a = new THREE.Vector3().fromBufferAttribute(posAttr, index.getX(i));
+                    let b = new THREE.Vector3().fromBufferAttribute(posAttr, index.getX(i+1));
+                    let c = new THREE.Vector3().fromBufferAttribute(posAttr, index.getX(i+2));
+                    let center = new THREE.Vector3().addVectors(a, b).add(c).divideScalar(3);
+                    let ab = new THREE.Vector3().subVectors(b, a);
+                    let ac = new THREE.Vector3().subVectors(c, a);
+                    let normal = new THREE.Vector3().crossVectors(ab, ac).normalize();
+                    if (normal.dot(center) < 0) normal.negate();
+                    faces.push({ center, normal });
+                }
+            } else {
+                for(let i=0; i<posAttr.count; i+=3) {
+                    let a = new THREE.Vector3().fromBufferAttribute(posAttr, i);
+                    let b = new THREE.Vector3().fromBufferAttribute(posAttr, i+1);
+                    let c = new THREE.Vector3().fromBufferAttribute(posAttr, i+2);
+                    let center = new THREE.Vector3().addVectors(a, b).add(c).divideScalar(3);
+                    let ab = new THREE.Vector3().subVectors(b, a);
+                    let ac = new THREE.Vector3().subVectors(c, a);
+                    let normal = new THREE.Vector3().crossVectors(ab, ac).normalize();
+                    if (normal.dot(center) < 0) normal.negate();
+                    faces.push({ center, normal });
+                }
+            }
+            // Remove duplicate faces (some geometries have duplicated triangles for UV seams)
+            let uniqueFaces = [];
+            for(let f of faces) {
+                let isDup = uniqueFaces.some(uf => uf.center.distanceToSquared(f.center) < 0.0001);
+                if (!isDup) uniqueFaces.push(f);
+            }
+            geo.userData.faces = uniqueFaces;
+            return uniqueFaces;
+        }
+
+        function updateShopUI() {
+            document.getElementById('shop-gold-amount').innerText = gold;
+            let container = document.getElementById('shop-items-container');
+            container.innerHTML = '';
+            
+            Object.keys(SHAPES).forEach(key => {
+                let item = SHAPES[key];
+                let div = document.createElement('div');
+                div.className = 'shop-item';
+                
+                let isUnlocked = unlockedShapes.includes(key);
+                let isEquipped = (currentShape === key);
+                
+                let btnHtml = '';
+                if (isEquipped) {
+                    btnHtml = `<button class="shop-item-btn btn-equipped">Seçili</button>`;
+                } else if (isUnlocked) {
+                    btnHtml = `<button class="shop-item-btn btn-equip" onclick="equipShape('${key}')">Kullan</button>`;
+                } else {
+                    let btnStyle = (gold >= item.cost) ? "" : "opacity:0.6;";
+                    btnHtml = `<button class="shop-item-btn btn-buy" style="${btnStyle}" onclick="buyShape('${key}', this)">${item.cost} 🪙</button>`;
+                }
+                
+                div.innerHTML = `<span class="shop-item-name">${item.name}</span> ${btnHtml}`;
+                container.appendChild(div);
+            });
+        }
+        
+        window.buyShape = function(key, btnEl) {
+            let item = SHAPES[key];
+            if (gold >= item.cost) {
+                gold -= item.cost;
+                unlockedShapes.push(key);
+                localStorage.setItem('arrowMaze_gold', gold);
+                localStorage.setItem('arrowMaze_unlockedShapes', JSON.stringify(unlockedShapes));
+                let goldAmountEl = document.getElementById('gold-amount');
+                if (goldAmountEl) {
+                    goldAmountEl.innerText = gold;
+                } else {
+                    document.getElementById('gold-text').innerHTML = `🪙 <span id="gold-amount">${gold}</span>`;
+                }
+                SoundEngine.playCoin();
+                equipShape(key);
+            } else {
+                SoundEngine.playStuck();
+                if (btnEl) {
+                    let oldText = btnEl.innerText;
+                    btnEl.innerText = "Yetersiz!";
+                    btnEl.style.background = "#e74c3c";
+                    btnEl.style.opacity = "1";
+                    setTimeout(() => {
+                        btnEl.innerText = oldText;
+                        btnEl.style.background = "";
+                        btnEl.style.opacity = "0.6";
+                    }, 1000);
+                }
+            }
+        };
+        
+        window.equipShape = function(key) {
+            currentShape = key;
+            localStorage.setItem('arrowMaze_currentShape', currentShape);
+            updateShopUI();
+            SoundEngine.playFly();
+            loadLevel();
+            document.getElementById('shop-screen').style.display = 'none';
+        };
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebar-overlay').classList.toggle('open');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebar-overlay').classList.remove('open');
+        }
+        function openShopFromSidebar() {
+            closeSidebar();
+            updateShopUI();
+            document.getElementById('shop-screen').style.display = 'flex';
+        }
+        function openSettingsFromSidebar() {
+            closeSidebar();
+            document.getElementById('settings-screen').style.display = 'flex';
+            let btnSound = document.getElementById('btn-toggle-sound');
+            if (SoundEngine.isMuted) {
+                btnSound.innerText = "KAPALI";
+                btnSound.style.background = "#ff7675";
+            } else {
+                btnSound.innerText = "AÇIK";
+                btnSound.style.background = "#1dd1a1";
+            }
+            let btnMusic = document.getElementById('btn-toggle-music');
+            if (MusicEngine.isMuted) {
+                btnMusic.innerText = "KAPALI";
+                btnMusic.style.background = "#ff7675";
+            } else {
+                btnMusic.innerText = "AÇIK";
+                btnMusic.style.background = "#1dd1a1";
+            }
+        }
+        function closeSettings() {
+            document.getElementById('settings-screen').style.display = 'none';
+        }
+        function resetGameProgress() {
+            if(confirm("Tüm altın, seviye ve satın aldığın şekiller silinecek. Oyuna sıfırdan başlayacaksın. Emin misin?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+        document.getElementById('btn-hamburger').onclick = toggleSidebar;
+        document.getElementById('btn-close-shop').onclick = () => {
+            document.getElementById('shop-screen').style.display = 'none';
+        };
+
+        let lastInteractionTime = Date.now();
+        function resetIdleTimer() { lastInteractionTime = Date.now(); }
+        window.addEventListener('pointerdown', resetIdleTimer);
+        window.addEventListener('wheel', resetIdleTimer);
+        window.addEventListener('touchstart', resetIdleTimer);
+
+        const SoundEngine = (function() {
+            let audioCtx = null;
+            let isMuted = localStorage.getItem('cubix_muted') === 'true';
+            function init() {
+                if (isMuted) return;
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }
+            function playTone(freq, type, duration, vol, slideFreq = null) {
+                if (isMuted || !audioCtx) return;
+                let osc = audioCtx.createOscillator();
+                let gainNode = audioCtx.createGain();
+                osc.type = type;
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                if (slideFreq) osc.frequency.exponentialRampToValueAtTime(slideFreq, audioCtx.currentTime + duration);
+                gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            }
+            function toggleMute() {
+                isMuted = !isMuted;
+                localStorage.setItem('cubix_muted', isMuted);
+                let btn = document.getElementById('btn-toggle-sound');
+                if (isMuted) {
+                    btn.innerText = "KAPALI";
+                    btn.style.background = "#ff7675";
+                } else {
+                    btn.innerText = "AÇIK";
+                    btn.style.background = "#1dd1a1";
+                    init();
+                    playTone(400, 'sine', 0.1, 0.1);
+                }
+            }
+            return {
+                init: init,
+                toggleMute: toggleMute,
+                get isMuted() { return isMuted; },
+                playFly: () => playTone(400, 'sine', 0.15, 0.2, 800),
+                playStuck: () => playTone(150, 'square', 0.15, 0.1, 50),
+                playCoin: () => {
+                    playTone(1200, 'sine', 0.1, 0.1, 2000);
+                    setTimeout(() => playTone(1600, 'sine', 0.15, 0.1), 50);
+                },
+                playVictory: () => {
+                    setTimeout(() => playTone(440, 'sine', 0.2, 0.15), 0);
+                    setTimeout(() => playTone(554, 'sine', 0.2, 0.15), 150);
+                    setTimeout(() => playTone(659, 'sine', 0.3, 0.15), 300);
+                    setTimeout(() => playTone(880, 'sine', 0.6, 0.2), 450);
+                }
+            };
+        })();
+
+        const MusicEngine = (function() {
+            let audioCtx = null;
+            let isMuted = localStorage.getItem('cubix_music_muted') === 'true';
+            let currentMode = null; // 'MENU' or 'GAME'
+            let activeOscillators = [];
+            let masterGain = null;
+            let filterNode = null;
+            let loopTimer = null;
+
+            function init() {
+                if (isMuted) return;
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    masterGain = audioCtx.createGain();
+                    filterNode = audioCtx.createBiquadFilter();
+                    
+                    filterNode.type = 'lowpass';
+                    filterNode.frequency.value = 300; // Kesici frekans
+                    
+                    masterGain.gain.value = 0.5;
+                    filterNode.connect(masterGain);
+                    masterGain.connect(audioCtx.destination);
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }
+
+            function playSoftPad(freqs, duration) {
+                freqs.forEach((freq, i) => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine'; // Sadece en yumuşak dalga
+                    osc.frequency.value = freq;
+                    
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + duration * 0.4);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+                    
+                    osc.connect(gain);
+                    gain.connect(filterNode);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + duration);
+                    activeOscillators.push(osc);
+                });
+            }
+
+            function startMenuMusic() {
+                if (isMuted) return;
+                init();
+                if(!audioCtx || currentMode === 'MENU') return;
+                stop();
+                currentMode = 'MENU';
+                
+                filterNode.frequency.value = 300; 
+                const chords = [
+                    [110.00, 164.81, 196.00], 
+                    [98.00, 146.83, 174.61]   
+                ];
+                let index = 0;
+                
+                function loop() {
+                    if (currentMode !== 'MENU') return;
+                    playSoftPad(chords[index], 8);
+                    index = (index + 1) % chords.length;
+                    activeOscillators = activeOscillators.filter(o => o.playbackState !== 'finished');
+                    loopTimer = setTimeout(loop, 6000);
+                }
+                loop();
+            }
+
+            function startGameMusic() {
+                if (isMuted) return;
+                init();
+                if(!audioCtx || currentMode === 'GAME') return;
+                stop();
+                currentMode = 'GAME';
+                
+                filterNode.frequency.value = 600; 
+                const notes = [220, 261.63, 329.63, 392.00, 329.63, 261.63];
+                let index = 0;
+                
+                function loop() {
+                    if (currentMode !== 'GAME') return;
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = notes[index];
+                    
+                    gain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                    
+                    osc.connect(gain);
+                    gain.connect(filterNode);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.5);
+                    activeOscillators.push(osc);
+                    
+                    index = (index + 1) % notes.length;
+                    activeOscillators = activeOscillators.filter(o => o.playbackState !== 'finished');
+                    loopTimer = setTimeout(loop, 400); 
+                }
+                loop();
+            }
+
+            function stop() {
+                currentMode = null;
+                clearTimeout(loopTimer);
+                activeOscillators.forEach(osc => {
+                    try { osc.stop(); } catch(e){}
+                });
+                activeOscillators = [];
+            }
+
+            function toggleMute() {
+                isMuted = !isMuted;
+                localStorage.setItem('cubix_music_muted', isMuted);
+                let btn = document.getElementById('btn-toggle-music');
+                if (btn) {
+                    if (isMuted) {
+                        btn.innerText = "KAPALI";
+                        btn.style.background = "#ff7675";
+                        stop();
+                    } else {
+                        btn.innerText = "AÇIK";
+                        btn.style.background = "#1dd1a1";
+                        if (gameState === 'MENU') startMenuMusic();
+                        else startGameMusic();
+                    }
+                }
+            }
+
+            return {
+                init: init,
+                startMenuMusic: startMenuMusic,
+                startGameMusic: startGameMusic,
+                stop: stop,
+                toggleMute: toggleMute,
+                get isMuted() { return isMuted; }
+            };
+        })();
+
+        window.addEventListener('pointerdown', () => {
+            SoundEngine.init();
+            MusicEngine.init();
+            if(gameState === 'MENU') MusicEngine.startMenuMusic();
+            else MusicEngine.startGameMusic();
+        }, { once: true });
+
+        // --- GÖRSEL EFEKT MOTORU (VFX) ---
+        const ParticleEngine = (function() {
+            let particles = [];
+            let particleGeo = new THREE.BoxGeometry(0.25, 0.25, 0.25);
+            
+            function spawnBurst(position, colorHex) {
+                let count = 8 + Math.floor(Math.random() * 8);
+                let mat = new THREE.MeshPhongMaterial({ color: colorHex });
+                for(let i=0; i<count; i++) {
+                    let mesh = new THREE.Mesh(particleGeo, mat);
+                    mesh.position.copy(position);
+                    let velocity = new THREE.Vector3((Math.random()-0.5)*0.6, (Math.random()-0.5)*0.6, (Math.random()-0.5)*0.6);
+                    scene.add(mesh);
+                    particles.push({ mesh: mesh, velocity: velocity, life: 1.0 });
+                }
+            }
+            
+            function spawnGoldConfetti() {
+                let count = 50;
+                let mat = new THREE.MeshPhongMaterial({ color: 0xf1c40f, emissive: 0xc28f00 });
+                for(let i=0; i<count; i++) {
+                    let mesh = new THREE.Mesh(particleGeo, mat);
+                    mesh.position.set((Math.random()-0.5)*5, 5 + Math.random()*5, (Math.random()-0.5)*5);
+                    let velocity = new THREE.Vector3((Math.random()-0.5)*0.3, Math.random()*0.2, (Math.random()-0.5)*0.3);
+                    scene.add(mesh);
+                    particles.push({ mesh: mesh, velocity: velocity, life: 3.0, gravity: -0.015 });
+                }
+            }
+            
+            function update() {
+                for(let i = particles.length - 1; i >= 0; i--) {
+                    let p = particles[i];
+                    p.mesh.position.add(p.velocity);
+                    p.mesh.rotation.x += 0.1; p.mesh.rotation.y += 0.1;
+                    if (p.gravity !== undefined) {
+                        p.velocity.y += p.gravity;
+                        p.life -= 0.02;
+                    } else {
+                        p.mesh.scale.multiplyScalar(0.92);
+                        p.life -= 0.05;
+                    }
+                    if(p.life <= 0 || p.mesh.scale.x < 0.01) {
+                        scene.remove(p.mesh);
+                        particles.splice(i, 1);
+                    }
+                }
+            }
+            
+            return { spawnBurst, spawnGoldConfetti, update };
+        })();
+
+        const THEMES = [
+            { bg: '#f8f9fa', text: '#1e272e', colors: [0xff6b6b, 0xff9ff3, 0x48dbfb, 0x1dd1a1, 0xfeca57, 0x54a0ff] },
+            { bg: '#1e272e', text: '#f8f9fa', colors: [0xff3f34, 0xff3838, 0x0fb9b1, 0x20bf6b, 0xf7b731, 0x3867d6] },
+            { bg: '#ffecd2', text: '#d35400', colors: [0xff7f50, 0xff6b81, 0x7bed9f, 0x2ed573, 0xffa502, 0x1e90ff] },
+            { bg: '#e0fbfc', text: '#2d3436', colors: [0xee5253, 0xff9f43, 0x10ac84, 0x01a3a4, 0xfeca57, 0x2e86de] },
+            { bg: '#2f3542', text: '#f1f2f6', colors: [0xff4757, 0xff6348, 0x2ed573, 0x1e90ff, 0xeccc68, 0x70a1ff] },
+            { bg: '#f1e3d3', text: '#596275', colors: [0xc44569, 0xcf6a87, 0x3dc1d3, 0x546de5, 0xf3a683, 0xf7d794] },
+        ];
+
+        function getTier(lvl) {
+            let currentLvl = 100, currentTier = 10, gap = 20;
+            if (lvl <= 100) return Math.ceil(lvl / 10);
+            while (lvl > currentLvl) {
+                if (currentLvl >= 1000) gap = 100;
+                else if (currentLvl >= 700) gap = 60;
+                else if (currentLvl >= 500) gap = 50;
+                else if (currentLvl >= 300) gap = 40;
+                else if (currentLvl >= 200) gap = 30;
+                if (lvl <= currentLvl + gap) return currentTier + 1;
+                currentLvl += gap; currentTier++;
+            }
+            return currentTier;
+        }
+
+        let levelViewStart = 1;
+        
+        function scrollLevelView(dir) {
+            levelViewStart = Math.max(1, levelViewStart + dir);
+            renderMenuNodes();
+        }
+
+        function renderMenuNodes() {
+            const container = document.getElementById('level-nodes-container');
+            container.innerHTML = '';
+            
+            let endLevel = levelViewStart + 4;
+
+            for(let l = levelViewStart; l <= endLevel; l++) {
+                let node = document.createElement('div');
+                node.className = 'level-node';
+                if (l < level) node.classList.add('completed');
+                else if (l === level) node.classList.add('current');
+                else node.classList.add('locked');
+                
+                node.innerText = l;
+                container.appendChild(node);
+            }
+        }
+
+        function goToMenu() {
+            gameState = 'MENU';
+            document.getElementById('main-menu-screen').style.opacity = '1';
+            document.getElementById('main-menu-screen').style.pointerEvents = 'auto';
+            document.getElementById('level-text').style.display = 'none';
+            document.getElementById('btn-home').style.display = 'none';
+            document.getElementById('btn-hamburger').style.display = 'flex';
+            document.getElementById('victory-screen').classList.remove('show');
+            
+            isTransitioningCamera = true;
+            let size = 2 + Math.floor((level - 1) / 5);
+            targetCameraPos.set(0, size * 2.5 + 2, size * 2.5 + 2);
+            targetCameraTarget.set(0, 0, 0);
+            
+            loadLevel(); // Menüdeyken de arkaplanda labirenti oluşturur
+            levelViewStart = Math.max(1, level - 1);
+            renderMenuNodes();
+            if(typeof MusicEngine !== 'undefined') MusicEngine.startMenuMusic();
+        }
+
+        function startGameplay() {
+            gameState = 'PLAYING';
+            document.getElementById('main-menu-screen').style.opacity = '0';
+            document.getElementById('main-menu-screen').style.pointerEvents = 'none';
+            document.getElementById('level-text').style.display = 'block';
+            document.getElementById('btn-home').style.display = 'block';
+            document.getElementById('btn-hamburger').style.display = 'none';
+            
+            document.getElementById('level-text').innerText = "Bölüm " + level;
+            
+            isTransitioningCamera = true;
+            if(typeof MusicEngine !== 'undefined') MusicEngine.startGameMusic();
+            
+            let size = 2 + Math.floor((level - 1) / 5);
+            targetCameraPos.set(size * 1.8, size * 1.8, size * 1.8);
+            targetCameraTarget.set(0, 0, 0);
+            
+            let tutEl = document.getElementById('tutorial-text');
+            if (level === 1) { tutEl.innerText = "Sola/Sağa kaydırarak etrafa bak ve oklu bloklara tıkla!"; tutEl.style.display = 'block'; }
+            else if (level === 2) { tutEl.innerText = "Ok işaretleri blokların fırlayacağı yönü gösterir."; tutEl.style.display = 'block'; }
+            else if (level === 3) { tutEl.innerText = "Yolu kapanan bloklar sıkışır. Doğru sırayı bulmalısın!"; tutEl.style.display = 'block'; }
+            else { tutEl.style.display = 'none'; }
+            
+            let currentTier = getTier(level);
+            let prevTier = getTier(level - 1);
+            
+            if (level > 1 && currentTier > prevTier && !sessionStorage.getItem('stage_announced_' + level)) {
+                sessionStorage.setItem('stage_announced_' + level, 'true');
+                let stageEl = document.getElementById('stage-announce');
+                stageEl.innerText = "AŞAMA " + currentTier;
+                stageEl.style.display = 'block';
+                setTimeout(() => {
+                    stageEl.style.opacity = '1';
+                    stageEl.style.transform = 'translate(-50%, -50%) scale(1)';
+                }, 10);
+                setTimeout(() => {
+                    stageEl.style.opacity = '0';
+                    stageEl.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                    setTimeout(() => stageEl.style.display = 'none', 500);
+                }, 2500);
+            }
+        }
+
+        document.getElementById('btn-play-big').onclick = startGameplay;
+
+        function applyTheme(tier) {
+            let theme = THEMES[(tier - 1) % THEMES.length];
+            document.body.style.backgroundColor = theme.bg;
+            document.getElementById('level-text').style.color = theme.text;
+            scene.background = new THREE.Color(theme.bg);
+            for(let i=0; i<BLOCK_MATERIALS.length; i++) {
+                if (theme.colors[i]) BLOCK_MATERIALS[i].color.setHex(theme.colors[i]);
+            }
+        }
+
+        function loadLevel() {
+            isLevelComplete = false;
+            blocks.forEach(b => mazeGroup.remove(b.group));
+            blocks = [];
+            let tier = getTier(level);
+            applyTheme(tier);
+            
+            mazeGroup.position.set(0, 0, 0);
+
+            let size = 2 + Math.floor((level - 1) / 5);
+            let maxBlocks = size * size * size;
+            let subLevel = (level - 1) % 5;
+            
+            let fillRatio;
+            if (size === 2) {
+                fillRatio = 0.5 + (subLevel * 0.12);
+            } else if (size === 3) {
+                fillRatio = 0.4 + (subLevel * 0.12);
+            } else {
+                fillRatio = 0.3 + (subLevel * 0.1);
+            }
+            
+            let blockCount = Math.floor(maxBlocks * fillRatio);
+
+            const offset = (size - 1) / 2;
+
+            // Tersine Sökme (Reverse Assembly) Algoritması
+            let grid = [];
+            for(let x=0; x<size; x++) {
+                for(let y=0; y<size; y++) {
+                    for(let z=0; z<size; z++) {
+                        grid.push(new THREE.Vector3(x, y, z));
+                    }
+                }
+            }
+            
+            // İstenen blok sayısına kadar küçült
+            while(grid.length > blockCount) {
+                grid.splice(Math.floor(Math.random() * grid.length), 1);
+            }
+
+            let assignedBlocks = [];
+            
+            while(grid.length > 0) {
+                let removable = [];
+                for(let i=0; i<grid.length; i++) {
+                    let b = grid[i];
+                    let validDirs = [];
+                    for(let dir of DIRS) {
+                        let blocked = false;
+                        for(let j=0; j<grid.length; j++) {
+                            if (i === j) continue;
+                            let other = grid[j];
+                            if (dir.x !== 0 && other.y === b.y && other.z === b.z) {
+                                if ((dir.x > 0 && other.x > b.x) || (dir.x < 0 && other.x < b.x)) blocked = true;
+                            } else if (dir.y !== 0 && other.x === b.x && other.z === b.z) {
+                                if ((dir.y > 0 && other.y > b.y) || (dir.y < 0 && other.y < b.y)) blocked = true;
+                            } else if (dir.z !== 0 && other.x === b.x && other.y === b.y) {
+                                if ((dir.z > 0 && other.z > b.z) || (dir.z < 0 && other.z < b.z)) blocked = true;
+                            }
+                        }
+                        if (!blocked) validDirs.push(dir);
+                    }
+                    if (validDirs.length > 0) {
+                        removable.push({ index: i, block: b, dirs: validDirs });
+                    }
+                }
+
+                if (removable.length === 0) break;
+
+                let picked = removable[Math.floor(Math.random() * removable.length)];
+                let chosenDir = picked.dirs[Math.floor(Math.random() * picked.dirs.length)];
+
+                assignedBlocks.push({ pos: picked.block, dir: chosenDir });
+                grid.splice(picked.index, 1);
+            }
+
+            for(let item of assignedBlocks) {
+                let pos = item.pos;
+                let chosenDir = item.dir;
+                
+                let activeGeo = SHAPES[currentShape].geo;
+                
+                let group = new THREE.Group();
+                let randomMat = BLOCK_MATERIALS[Math.floor(Math.random() * BLOCK_MATERIALS.length)];
+                let mesh = new THREE.Mesh(activeGeo, randomMat);
+                
+                let edges = new THREE.EdgesGeometry(activeGeo);
+                // Çizgileri hafif beyazlaştırdık ki renklerin üstünde güzel dursun
+                let line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3, transparent: true }));
+                mesh.add(line);
+                
+                group.add(mesh);
+
+                // SİSTEMİ BOZMADAN DÜZELTME: Oklar şeklin geometrisine uygun olarak eklenecek
+                let shapeData = SHAPES[currentShape] || SHAPES['cube'];
+                
+                if (shapeData.arrowType === 'wrap') {
+                    if (!wrapArrowMat) wrapArrowMat = createWrapArrowTexture();
+                    
+                    let shellGeo = new THREE.SphereGeometry(shapeData.arrowDist, 32, 16);
+                    let shell = new THREE.Mesh(shellGeo, wrapArrowMat);
+                    shell.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), chosenDir);
+                    group.add(shell);
+                } else if (shapeData.arrowType === 'faces') {
+                    let faces = getGeometryFaces(activeGeo).slice();
+                    let pickedFaces = [];
+                    
+                    for(let n of DIRS) {
+                        if (Math.abs(n.dot(chosenDir)) > 0.1) continue; 
+                        
+                        let bestFace = null;
+                        let bestScore = -Infinity;
+                        let bestIdx = -1;
+                        
+                        for(let i=0; i<faces.length; i++) {
+                            let face = faces[i];
+                            let score = face.normal.dot(n) - Math.abs(face.normal.dot(chosenDir));
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestFace = face;
+                                bestIdx = i;
+                            }
+                        }
+                        
+                        if (bestFace) {
+                            pickedFaces.push(bestFace);
+                            faces.splice(bestIdx, 1);
+                        }
+                    }
+
+                    for(let face of pickedFaces) {
+                        let projectedDir = chosenDir.clone().sub(face.normal.clone().multiplyScalar(chosenDir.dot(face.normal))).normalize();
+                        if (projectedDir.lengthSq() < 0.001) continue; 
+                        
+                        let plane = new THREE.Mesh(planeGeo, arrowMat);
+                        plane.position.copy(face.center).add(face.normal.clone().multiplyScalar(0.015)); 
+                        plane.scale.setScalar(shapeData.arrowScale);
+                        
+                        plane.up.copy(projectedDir);
+                        plane.lookAt(plane.position.clone().add(face.normal));
+                        
+                        group.add(plane);
+                    }
+                } else {
+                    for(let n of DIRS) {
+                        if (Math.abs(n.dot(chosenDir)) > 0.1) continue;
+                        
+                        let plane = new THREE.Mesh(planeGeo, arrowMat);
+                        plane.position.copy(n).multiplyScalar(shapeData.arrowDist); 
+                        plane.scale.setScalar(shapeData.arrowScale);
+                        plane.up.copy(chosenDir);
+                        plane.lookAt(n.clone().multiplyScalar(2));
+                        group.add(plane);
+                    }
+                }
+
+                let basePos = new THREE.Vector3(pos.x - offset, pos.y - offset, pos.z - offset);
+                group.position.copy(basePos);
+                mazeGroup.add(group);
+                
+                let blockObj = {
+                    group: group,
+                    gridPos: pos.clone(),
+                    basePos: basePos,
+                    dir: chosenDir,
+                    state: 'idle',
+                    shakeTime: 0
+                };
+                
+                group.children.forEach(c => c.userData.block = blockObj);
+                mesh.userData.block = blockObj;
+                line.userData.block = blockObj; 
+                
+                blocks.push(blockObj);
+            }
+
+            if (gameState === 'PLAYING') {
+                targetCameraPos.set(size * 1.5, size * 1.5, size * 1.5);
+            } else {
+                // Menü görünümü için kamerayı daha uzağa ve hafif yukarı al
+                targetCameraPos.set(size * 3.0, size * 2.0, size * 3.0);
+            }
+            targetCameraTarget.set(0, 0, 0);
+        }
+
+        goToMenu();
+
+        const raycaster = new THREE.Raycaster();
+        // HATA DÜZELTİLDİ: Three.js'de çizgilerin görünmez tıklama alanı devasadır. Yanlış kutuyu seçtiren buydu.
+        raycaster.params.Line.threshold = 0.01; 
+        const mouse = new THREE.Vector2();
+        
+        let downPos = {x:0, y:0};
+
+        window.addEventListener('pointerdown', (e) => {
+            if (gameState !== 'PLAYING') return;
+            downPos.x = e.clientX;
+            downPos.y = e.clientY;
+        });
+
+        window.addEventListener('pointerup', (e) => {
+            if (gameState !== 'PLAYING') return;
+            let dist = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
+            if (dist < 15) { 
+                mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+                
+                raycaster.setFromCamera(mouse, camera);
+                let intersects = raycaster.intersectObjects(blocks.map(b => b.group), true);
+
+                intersects = intersects.filter(hit => hit.object.type !== 'LineSegments');
+
+                if(intersects.length > 0) {
+                    let clickedMesh = intersects[0].object;
+                    if(!clickedMesh.userData.block && clickedMesh.parent && clickedMesh.parent.userData.block) {
+                        clickedMesh = clickedMesh.parent;
+                    }
+                    let b = clickedMesh.userData.block;
+                    if(b && b.state === 'idle') {
+                        checkAndMove(b);
+                    }
+                }
+            }
+        });
+
+        function checkAndMove(b) {
+            let canMove = true;
+            for(let other of blocks) {
+                if(other === b || other.state === 'flying') continue;
+                
+                let dir = b.dir;
+                if (dir.x !== 0 && other.gridPos.y === b.gridPos.y && other.gridPos.z === b.gridPos.z) {
+                    if ((dir.x > 0 && other.gridPos.x > b.gridPos.x) || (dir.x < 0 && other.gridPos.x < b.gridPos.x)) canMove = false;
+                } else if (dir.y !== 0 && other.gridPos.x === b.gridPos.x && other.gridPos.z === b.gridPos.z) {
+                    if ((dir.y > 0 && other.gridPos.y > b.gridPos.y) || (dir.y < 0 && other.gridPos.y < b.gridPos.y)) canMove = false;
+                } else if (dir.z !== 0 && other.gridPos.x === b.gridPos.x && other.gridPos.y === b.gridPos.y) {
+                    if ((dir.z > 0 && other.gridPos.z > b.gridPos.z) || (dir.z < 0 && other.gridPos.z < b.gridPos.z)) canMove = false;
+                }
+            }
+
+            if(canMove) {
+                b.state = 'flying';
+                if(typeof SoundEngine !== 'undefined') SoundEngine.playFly();
+            } else {
+                b.state = 'shaking';
+                b.shakeTime = 15;
+                if(typeof SoundEngine !== 'undefined') SoundEngine.playStuck();
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (isTransitioningCamera) {
+                camera.position.lerp(targetCameraPos, 0.05);
+                controls.target.lerp(targetCameraTarget, 0.05);
+                if (camera.position.distanceTo(targetCameraPos) < 0.5) {
+                    isTransitioningCamera = false;
+                }
+            }
+            
+            controls.update();
+            ParticleEngine.update();
+
+            // AFK / Idle Animasyonu (Nefes Alma ve Süzülme)
+            let idleTime = Date.now() - lastInteractionTime;
+            if (idleTime > 3000 && !isLevelComplete && blocks.length > 0) {
+                let t = (idleTime - 3000) * 0.0005;
+                mazeGroup.rotation.y = Math.sin(t * 0.8) * 0.5; // Sağa sola dönüş
+                mazeGroup.rotation.x = Math.sin(t * 0.5) * 0.3; // Aşağı yukarı eğilme
+                mazeGroup.rotation.z = Math.cos(t * 0.6) * 0.15; // Hafif beşik hareketi
+            } else {
+                // Etkileşim anında pürüzsüzce (smooth) eski düz açısına kilitlen
+                mazeGroup.rotation.y += (0 - mazeGroup.rotation.y) * 0.15;
+                mazeGroup.rotation.x += (0 - mazeGroup.rotation.x) * 0.15;
+                mazeGroup.rotation.z += (0 - mazeGroup.rotation.z) * 0.15;
+            }
+
+            // Kutuların Uçuş Animasyonu
+            for (let i = blocks.length - 1; i >= 0; i--) {
+                let b = blocks[i];
+                if (b.state === 'flying') {
+                    b.group.position.add(b.dir.clone().multiplyScalar(0.5));
+                    if (b.group.position.length() > 15) {
+                        let worldPos = new THREE.Vector3();
+                        b.group.getWorldPosition(worldPos);
+                        let dirStr = `${b.dir.x},${b.dir.y},${b.dir.z}`;
+                        let colorHex = b.group.children[0].material.color.getHex();
+                        ParticleEngine.spawnBurst(worldPos, colorHex);
+                        
+                        mazeGroup.remove(b.group);
+                        blocks.splice(i, 1);
+                    }
+                } else if(b.state === 'shaking') {
+                    b.shakeTime--;
+                    let shakeAmt = (b.shakeTime % 4 < 2) ? 0.1 : -0.1;
+                    b.group.position.copy(b.basePos).add(b.dir.clone().multiplyScalar(shakeAmt));
+                    if(b.shakeTime <= 0) {
+                        b.state = 'idle';
+                        b.group.position.copy(b.basePos);
+                    }
+                }
+            }
+
+            if(blocks.length === 0 && !isLevelComplete && gameState === 'PLAYING') {
+                isLevelComplete = true;
+                SoundEngine.playVictory();
+                ParticleEngine.spawnGoldConfetti();
+                
+                // Temel Altın Kazanımı
+                let baseGold = 15 + Math.floor(Math.random() * 15) + (getTier(level) * 5); 
+                
+                let victoryScreen = document.getElementById('victory-screen');
+                let goldAmountText = document.getElementById('victory-gold-amount');
+                let slider = document.getElementById('multiplier-slider');
+                let btnMultiply = document.getElementById('btn-multiply');
+                let btnClaim = document.getElementById('btn-claim');
+                let multText = document.getElementById('multiplier-text');
+                
+                goldAmountText.innerText = baseGold;
+                goldAmountText.style.color = "#f1c40f"; // Reset color
+                victoryScreen.classList.add('show');
+                
+                // Animasyon Değişkenleri
+                let isAnimating = true;
+                let sliderPos = 0; // 0 to 100
+                let sliderDir = 1;
+                let speed = 1.8; // İbre hızı dengelendi (Eski değer: 1.2, İlk değer: 2.5)
+                
+                function updateSlider() {
+                    if (!isAnimating) return;
+                    sliderPos += sliderDir * speed;
+                    if (sliderPos > 100) { sliderPos = 100; sliderDir = -1; }
+                    if (sliderPos < 0) { sliderPos = 0; sliderDir = 1; }
+                    
+                    slider.style.left = sliderPos + '%';
+                    
+                    // Hangi bölgede (zone) olduğunu hesapla
+                    let currentMult = 2;
+                    if (sliderPos >= 20 && sliderPos <= 80) {
+                        currentMult = 3;
+                        if (sliderPos >= 40 && sliderPos <= 60) currentMult = 5;
+                    }
+                    multText.innerText = "x" + currentMult;
+                    
+                    requestAnimationFrame(updateSlider);
+                }
+                updateSlider();
+                
+                function proceedToNextLevel(finalGold) {
+                    isAnimating = false;
+                    victoryScreen.classList.remove('show');
+                    
+                    gold += finalGold;
+                    localStorage.setItem('arrowMaze_gold', gold);
+                    let goldAmountEl = document.getElementById('gold-amount');
+                    if (goldAmountEl) {
+                        goldAmountEl.innerText = gold;
+                    } else {
+                        document.getElementById('gold-text').innerHTML = `🪙 <span id="gold-amount">${gold}</span>`;
+                    }
+
+                    level++;
+                    localStorage.setItem('arrowMaze_level', level);
+                    document.getElementById('level-text').innerText = "Bölüm " + level;
+                    
+                    // Memory leak önleme
+                    btnMultiply.onclick = null;
+                    btnClaim.onclick = null;
+                    
+                    setTimeout(goToMenu, 500); 
+                }
+
+                btnMultiply.onclick = () => {
+                    if(!isAnimating) return; // Prevent double click
+                    isAnimating = false;
+                    SoundEngine.playCoin();
+                    
+                    let mult = parseInt(multText.innerText.replace('x', ''));
+                    let finalGold = baseGold * mult;
+                    
+                    if (mult >= 3) ParticleEngine.spawnGoldConfetti(); // 3x ve 5x tutturunca ekstra konfeti!
+                    
+                    // Görsel kutlama efekti
+                    goldAmountText.innerText = finalGold + " (" + mult + "X!)";
+                    goldAmountText.style.color = "#ff7675";
+                    
+                    // İleride buraya reklam API'si entegre edilecek.
+                    // Şimdilik 1.5 saniye sonra geçiş yapıyoruz.
+                    setTimeout(() => proceedToNextLevel(finalGold), 1500);
+                };
+                
+                btnClaim.onclick = () => {
+                    if(!isAnimating) return;
+                    SoundEngine.playCoin();
+                    proceedToNextLevel(baseGold);
+                };
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>

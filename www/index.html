@@ -530,6 +530,32 @@
             }
         }
 
+        async function showInterstitialAd(callback) {
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+                try {
+                    const AdMob = window.Capacitor.Plugins.AdMob;
+                    await AdMob.prepareInterstitial({
+                        adId: "ca-app-pub-3940256099942544/1033173712", // Google Test Geçiş Reklamı
+                        isTesting: true
+                    });
+                    
+                    let done = false;
+                    const finish = () => { if (!done) { done = true; callback(); } };
+                    
+                    // Kapandığında veya hata olduğunda devam et
+                    AdMob.addListener('interstitialDismissed', finish);
+                    AdMob.addListener('interstitialFailedToShow', finish);
+                    
+                    await AdMob.showInterstitial();
+                } catch (e) {
+                    console.error("Interstitial Hatası:", e);
+                    callback();
+                }
+            } else {
+                callback();
+            }
+        }
+
         async function watchAdForTime() {
             let btn = document.getElementById('btn-ad-time');
             btn.innerHTML = "⏳ Yükleniyor...";
@@ -1570,10 +1596,17 @@
                     btnMultiply.onclick = null;
                     btnClaim.onclick = null;
                     
-                    setTimeout(goToMenu, 500); 
+                    // Her 3 bölümde bir Geçiş (Interstitial) Reklamı
+                    if (level % 3 === 0) {
+                        showInterstitialAd(() => {
+                            setTimeout(goToMenu, 500); 
+                        });
+                    } else {
+                        setTimeout(goToMenu, 500); 
+                    }
                 }
 
-                btnMultiply.onclick = () => {
+                btnMultiply.onclick = async () => {
                     if(!isAnimating) return; // Prevent double click
                     isAnimating = false;
                     SoundEngine.playCoin();
@@ -1581,15 +1614,41 @@
                     let mult = parseInt(multText.innerText.replace('x', ''));
                     let finalGold = baseGold * mult;
                     
-                    if (mult >= 3) ParticleEngine.spawnGoldConfetti(); // 3x ve 5x tutturunca ekstra konfeti!
+                    btnMultiply.innerHTML = "⏳ Yükleniyor...";
+                    btnMultiply.style.pointerEvents = "none";
+                    btnClaim.style.display = "none";
                     
-                    // Görsel kutlama efekti
-                    goldAmountText.innerText = finalGold + " (" + mult + "X!)";
-                    goldAmountText.style.color = "#ff7675";
-                    
-                    // İleride buraya reklam API'si entegre edilecek.
-                    // Şimdilik 1.5 saniye sonra geçiş yapıyoruz.
-                    setTimeout(() => proceedToNextLevel(finalGold), 1500);
+                    if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+                        try {
+                            const AdMob = window.Capacitor.Plugins.AdMob;
+                            await AdMob.prepareRewardVideoAd({
+                                adId: "ca-app-pub-3940256099942544/5224354917", 
+                                isTesting: true
+                            });
+                            
+                            AdMob.addListener('onRewardedVideoAdReward', () => {
+                                goldAmountText.innerText = finalGold + " (" + mult + "X!)";
+                                goldAmountText.style.color = "#ff7675";
+                                if (mult >= 3) ParticleEngine.spawnGoldConfetti();
+                                setTimeout(() => proceedToNextLevel(finalGold), 1500);
+                            });
+                            
+                            await AdMob.showRewardVideoAd();
+                        } catch (e) {
+                            console.error("AdMob Hatası:", e);
+                            goldAmountText.innerText = finalGold + " (" + mult + "X!)";
+                            goldAmountText.style.color = "#ff7675";
+                            if (mult >= 3) ParticleEngine.spawnGoldConfetti();
+                            setTimeout(() => proceedToNextLevel(finalGold), 1500);
+                        }
+                    } else {
+                        setTimeout(() => {
+                            goldAmountText.innerText = finalGold + " (" + mult + "X!)";
+                            goldAmountText.style.color = "#ff7675";
+                            if (mult >= 3) ParticleEngine.spawnGoldConfetti();
+                            setTimeout(() => proceedToNextLevel(finalGold), 1500);
+                        }, 2000);
+                    }
                 };
                 
                 btnClaim.onclick = () => {

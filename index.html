@@ -259,13 +259,13 @@
         #timer-text.danger { animation: pulseRed 0.5s infinite; color: #ff4757 !important; }
         
         @media (max-width: 600px) {
-            #main-menu-screen { padding-bottom: 80px; } /* box-sizing eklendiği için artık yukarı itecek */
+            #main-menu-screen { padding-bottom: max(40px, env(safe-area-inset-bottom) + 15px); } /* İdeal alt boşluk */
             #level-text { font-size: 20px; top: 70px; white-space: nowrap; } /* Butonların altına alındı */
             #gold-text { font-size: 14px; padding: 6px 12px; top: 20px; right: 10px; }
             #btn-hamburger, #btn-home { font-size: 14px; padding: 6px 12px; top: 20px; left: 10px; }
             #timer-text { font-size: 16px; top: 100px; padding: 3px 15px; } /* Bölüm yazısının altına alındı */
             .menu-title { font-size: 12vw; letter-spacing: 2px; -webkit-text-stroke: 2px #1e272e; top: 10%; } /* Dinamik font boyutu */
-            .play-big-btn { padding: 15px 40px; font-size: 22px; margin-bottom: 80px; } /* Butonu doğrudan yukarı itiyoruz */
+            .play-big-btn { padding: 15px 40px; font-size: 22px; }
             
             /* Bölüm Navigasyon Barını Ekrana Sığdır */
             .level-nav-container { margin-bottom: 20px; gap: 8px; }

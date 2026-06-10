@@ -1596,8 +1596,8 @@
                     btnMultiply.onclick = null;
                     btnClaim.onclick = null;
                     
-                    // Her 3 bölümde bir Geçiş (Interstitial) Reklamı
-                    if (level % 3 === 0) {
+                    // Her 5 bölümde bir Geçiş (Interstitial) Reklamı
+                    if (level % 5 === 0) {
                         showInterstitialAd(() => {
                             setTimeout(goToMenu, 500); 
                         });

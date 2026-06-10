@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cubix</string>
+    <string name="title_activity_main">Cubix</string>
+    <string name="package_name">com.bargasoft.cubix</string>
+    <string name="custom_url_scheme">com.bargasoft.cubix</string>
+</resources>

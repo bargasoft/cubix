@@ -8,7 +8,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cubix v1.0</title>
+    <title>CUBIX 3D Puzzle</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         body { margin: 0; overflow: hidden; background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; transition: background-color 0.5s; }
         
@@ -1398,6 +1399,13 @@
             renderer.render(scene, camera);
         }
         animate();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+            .then((reg) => console.log('Service Worker registered', reg))
+            .catch((err) => console.log('Service Worker not registered', err));
+        }
     </script>
 </body>
 </html>

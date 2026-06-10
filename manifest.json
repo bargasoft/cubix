@@ -1,0 +1,10 @@
+{
+  "name": "CUBIX",
+  "short_name": "CUBIX",
+  "description": "3D Tangle Cube Puzzle Game",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#1e272e",
+  "theme_color": "#ff3838",
+  "orientation": "portrait"
+}

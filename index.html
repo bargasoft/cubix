@@ -265,7 +265,7 @@
             #btn-hamburger, #btn-home { font-size: 14px; padding: 6px 12px; top: 20px; left: 10px; }
             #timer-text { font-size: 16px; top: 100px; padding: 3px 15px; } /* Bölüm yazısının altına alındı */
             .menu-title { font-size: 12vw; letter-spacing: 2px; -webkit-text-stroke: 2px #1e272e; top: 10%; } /* Dinamik font boyutu */
-            .play-big-btn { padding: 15px 40px; font-size: 22px; }
+            .play-big-btn { padding: 15px 40px; font-size: 22px; margin-bottom: 80px; } /* Butonu doğrudan yukarı itiyoruz */
             
             /* Bölüm Navigasyon Barını Ekrana Sığdır */
             .level-nav-container { margin-bottom: 20px; gap: 8px; }
@@ -1092,8 +1092,8 @@
             
             let size = 2 + Math.floor((level - 1) / 5);
             
-            // Yeni ve dengeli süre hesaplaması: Toplam blok sayısı * 1.05 saniye. En az 25 saniye.
-            let timeLimit = Math.max(25, Math.floor(blocks.length * 1.05));
+            // Yeni ve dengeli süre hesaplaması: Toplam blok sayısı * 0.7 saniye. En az 15 saniye. (Adrenalin modu)
+            let timeLimit = Math.max(15, Math.floor(blocks.length * 0.7));
             if(level <= 2) timeLimit = 60; // İlk 2 bölüm için ekstra zaman
             startTimer(timeLimit);
 

@@ -288,7 +288,7 @@
         <div id="gameover-screen" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:200; align-items:center; justify-content:center; flex-direction:column; pointer-events:none; opacity:0; transition:opacity 0.3s;">
             <h1 style="color:#ff4757; font-size:50px; font-weight:900; text-shadow:0 0 20px #ff4757;">SÜRE BİTTİ!</h1>
             <p style="color:white; font-size:20px; margin-bottom:30px; text-align:center; padding: 0 20px;">Zamana karşı yarışıyordun, biraz daha hızlı olmalısın!</p>
-            <button id="btn-extra-time" onclick="buyExtraTime()" style="padding:15px 40px; margin-bottom:15px; font-size:22px; font-weight:bold; background:linear-gradient(45deg, #f1c40f, #e67e22); color:white; border:none; border-radius:30px; cursor:pointer; pointer-events:auto; box-shadow:0 5px 15px rgba(241, 196, 15, 0.4);">+30 Saniye Al (50 🪙)</button>
+            <button id="btn-extra-time" onclick="buyExtraTime()" style="padding:15px 40px; margin-bottom:15px; font-size:22px; font-weight:bold; background:linear-gradient(45deg, #f1c40f, #e67e22); color:white; border:none; border-radius:30px; cursor:pointer; pointer-events:auto; box-shadow:0 5px 15px rgba(241, 196, 15, 0.4);">+30 Saniye Al (500 🪙)</button>
             <button onclick="retryLevel()" style="padding:15px 40px; font-size:24px; font-weight:bold; background:linear-gradient(45deg, #1dd1a1, #10ac84); color:white; border:none; border-radius:30px; cursor:pointer; pointer-events:auto; box-shadow:0 5px 15px rgba(29, 209, 161, 0.4);">Baştan Başla</button>
             <button onclick="goToMenu()" style="margin-top:15px; padding:10px 30px; font-size:20px; background:transparent; color:white; border:2px solid white; border-radius:30px; cursor:pointer; pointer-events:auto;">Menüye Dön</button>
         </div>
@@ -518,13 +518,13 @@
             // Ekstra süre butonunun metnini sıfırla
             let btn = document.getElementById('btn-extra-time');
             if (btn) {
-                btn.innerHTML = "+30 Saniye Al (50 🪙)";
+                btn.innerHTML = "+30 Saniye Al (500 🪙)";
                 btn.style.background = "linear-gradient(45deg, #f1c40f, #e67e22)";
             }
         }
 
         function buyExtraTime() {
-            let cost = 50; // İleride reklama bağlanacak
+            let cost = 500; // İleride reklama bağlanacak
             if (gold >= cost) {
                 gold -= cost;
                 localStorage.setItem('arrowMaze_gold', gold);

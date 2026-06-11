@@ -530,10 +530,15 @@
             }
         }
 
+        let interListenerDismiss = null;
+        let interListenerFailed = null;
         async function showInterstitialAd(callback) {
             if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
                 try {
                     const AdMob = window.Capacitor.Plugins.AdMob;
+                    if (interListenerDismiss) { await interListenerDismiss.remove(); interListenerDismiss = null; }
+                    if (interListenerFailed) { await interListenerFailed.remove(); interListenerFailed = null; }
+                    
                     await AdMob.prepareInterstitial({
                         adId: "ca-app-pub-3940256099942544/1033173712", // Google Test Geçiş Reklamı
                         isTesting: true
@@ -543,8 +548,8 @@
                     const finish = () => { if (!done) { done = true; callback(); } };
                     
                     // Kapandığında veya hata olduğunda devam et
-                    AdMob.addListener('interstitialDismissed', finish);
-                    AdMob.addListener('interstitialFailedToShow', finish);
+                    interListenerDismiss = await AdMob.addListener('interstitialDismissed', finish);
+                    interListenerFailed = await AdMob.addListener('interstitialFailedToShow', finish);
                     
                     await AdMob.showInterstitial();
                 } catch (e) {
@@ -556,6 +561,8 @@
             }
         }
 
+        let rewardTimeListener = null;
+        let rewardTimeDismissListener = null;
         async function watchAdForTime() {
             let btn = document.getElementById('btn-ad-time');
             btn.innerHTML = "⏳ Yükleniyor...";
@@ -565,13 +572,22 @@
             if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
                 try {
                     const AdMob = window.Capacitor.Plugins.AdMob;
+                    if (rewardTimeListener) { await rewardTimeListener.remove(); rewardTimeListener = null; }
+                    if (rewardTimeDismissListener) { await rewardTimeDismissListener.remove(); rewardTimeDismissListener = null; }
+                    
                     await AdMob.prepareRewardVideoAd({
                         adId: "ca-app-pub-3940256099942544/5224354917", // Google'ın Resmi Test Reklamı
                         isTesting: true
                     });
                     
-                    AdMob.addListener('onRewardedVideoAdReward', () => {
-                        giveExtraTime(); // Reklam izlendi, ödülü ver
+                    let rewarded = false;
+                    rewardTimeListener = await AdMob.addListener('onRewardedVideoAdReward', () => {
+                        rewarded = true;
+                    });
+                    
+                    rewardTimeDismissListener = await AdMob.addListener('onRewardedVideoAdDismissed', () => {
+                        if (rewarded) giveExtraTime();
+                        // Reklam erken kapatılırsa hiçbir şey yapma
                     });
                     
                     await AdMob.showRewardVideoAd();
@@ -1621,16 +1637,29 @@
                     if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
                         try {
                             const AdMob = window.Capacitor.Plugins.AdMob;
+                            if (window.multRewardListener) { await window.multRewardListener.remove(); window.multRewardListener = null; }
+                            if (window.multDismissListener) { await window.multDismissListener.remove(); window.multDismissListener = null; }
+                            
                             await AdMob.prepareRewardVideoAd({
                                 adId: "ca-app-pub-3940256099942544/5224354917", 
                                 isTesting: true
                             });
                             
-                            AdMob.addListener('onRewardedVideoAdReward', () => {
-                                goldAmountText.innerText = finalGold + " (" + mult + "X!)";
-                                goldAmountText.style.color = "#ff7675";
-                                if (mult >= 3) ParticleEngine.spawnGoldConfetti();
-                                setTimeout(() => proceedToNextLevel(finalGold), 1500);
+                            let multRewarded = false;
+                            window.multRewardListener = await AdMob.addListener('onRewardedVideoAdReward', () => {
+                                multRewarded = true;
+                            });
+                            
+                            window.multDismissListener = await AdMob.addListener('onRewardedVideoAdDismissed', () => {
+                                if (multRewarded) {
+                                    goldAmountText.innerText = finalGold + " (" + mult + "X!)";
+                                    goldAmountText.style.color = "#ff7675";
+                                    if (mult >= 3) ParticleEngine.spawnGoldConfetti();
+                                    setTimeout(() => proceedToNextLevel(finalGold), 1500);
+                                } else {
+                                    // Reklam iptal edildiyse, ödül verme butonu geri gelsin veya normal devam etsin
+                                    proceedToNextLevel(baseGold);
+                                }
                             });
                             
                             await AdMob.showRewardVideoAd();

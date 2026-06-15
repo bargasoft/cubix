@@ -1,434 +1,4 @@
-<!--
-  Copyright (c) 2026 BarGa Soft Yazılım - Hüseyin Silahlı. All Rights Reserved.
-  This software and associated documentation files (the "Software") are proprietary and confidential.
-  Unauthorized copying, distribution, modification, or use of this Software, via any medium, is strictly prohibited.
--->
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CUBIX 3D Puzzle</title>
-    <link rel="manifest" href="manifest.json">
-    <style>
-        * { -webkit-tap-highlight-color: transparent; outline: none; }
-        body { margin: 0; overflow: hidden; background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; transition: background-color 0.5s; -webkit-tap-highlight-color: transparent; }
-        
-        #ui-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;
-            display: flex; flex-direction: column;
-        }
-        #top-bar {
-            position: relative; width: 100%; padding: 30px; box-sizing: border-box;
-            pointer-events: none; z-index: 50;
-        }
-        #level-text {
-            position: absolute; left: 50%; transform: translateX(-50%); top: 30px;
-            font-size: 36px; font-weight: 900; color: #1e272e; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: color 0.5s;
-        }
-        #timer-text {
-            position: absolute; left: 50%; transform: translateX(-50%); top: 80px;
-            color: white; font-weight: bold; font-size: 20px; background: rgba(0,0,0,0.4);
-            padding: 5px 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 20;
-        }
-        #gold-text {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 20px;
-            font-weight: 800;
-            color: #f1c40f;
-            background: rgba(30, 39, 46, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 10px 20px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
-            pointer-events: auto;
-            z-index: 15;
-        }
 
-        #top-hud {
-            position: absolute; top: 0; left: 0; width: 100%; padding: 20px; box-sizing: border-box;
-            display: flex; justify-content: space-between; align-items: flex-start; z-index: 40;
-            pointer-events: none;
-        }
-        .hud-gold-capsule {
-            display: flex; align-items: center; background: rgba(255,255,255,0.95);
-            border-radius: 30px; padding: 5px 15px 5px 5px; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            pointer-events: auto; border: 2px solid #ffeaa7;
-        }
-        .hud-gold-icon { font-size: 24px; margin-right: 5px; }
-        .hud-gold-text { font-size: 20px; font-weight: 900; color: #f39c12; }
-        .hud-gold-plus { 
-            background: #2ed573; color: white; width: 28px; height: 28px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 20px;
-            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.2s;
-            margin-left: 10px;
-        }
-        .hud-gold-plus:hover { transform: scale(1.1); }
-        
-        .hud-settings-btn {
-            background: rgba(30, 39, 46, 0.8); backdrop-filter: blur(5px);
-            border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 20px;
-            color: white; cursor: pointer; pointer-events: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.2s; display: flex; justify-content: center; align-items: center;
-        }
-        .hud-settings-btn:hover { transform: rotate(45deg); }
-
-        #bottom-nav {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 80px;
-            background: white; border-top-left-radius: 30px; border-top-right-radius: 30px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-around; align-items: center;
-            z-index: 40; pointer-events: auto; padding-bottom: env(safe-area-inset-bottom);
-        }
-        .nav-tab {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            width: 80px; height: 80px; cursor: pointer; color: #b2bec3; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative; top: 0;
-        }
-        .nav-tab.active { color: #0984e3; top: -10px; transform: scale(1.1); }
-        .nav-tab.active::after {
-            content: ''; position: absolute; bottom: 10px; width: 6px; height: 6px; background: #0984e3; border-radius: 50%;
-        }
-        .nav-icon { font-size: 30px; margin-bottom: 5px; }
-        .nav-text { font-size: 14px; font-weight: bold; }
-
-        #shop-screen, #profile-screen {
-            display: none; position: absolute; top: 0; left: 0; width: 100%; height: calc(100% - 80px);
-            z-index: 30; flex-direction: column; align-items: center; pointer-events: auto;
-            padding-top: 100px; box-sizing: border-box; overflow-y: auto; overflow-x: hidden;
-        }
-        
-        .profile-card {
-            background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 20px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.15); width: 90%; max-width: 400px;
-            text-align: center; margin-bottom: 20px;
-        }
-        .avatar-container {
-            width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #0984e3, #6c5ce7);
-            margin: 0 auto 15px auto; display: flex; justify-content: center; align-items: center;
-            font-size: 50px; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer;
-            position: relative;
-        }
-        .avatar-container:after {
-            content: "✏️"; position: absolute; bottom: -5px; right: -5px; font-size: 20px;
-            background: white; border-radius: 50%; padding: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .stat-row {
-            display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05);
-            font-size: 16px; font-weight: bold; color: #2d3436;
-        }
-        .stat-row span:last-child { color: #0984e3; }
-        .stat-row:last-child { border-bottom: none; }
-        
-        .avatar-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px;
-        }
-        .avatar-item {
-            background: #f1f2f6; border-radius: 12px; padding: 15px 5px; cursor: pointer;
-            display: flex; flex-direction: column; align-items: center; border: 2px solid transparent;
-        }
-        .avatar-item.active { border-color: #0984e3; background: #eccc68; }
-        .avatar-item-icon { font-size: 35px; margin-bottom: 5px; }
-        .avatar-item-price { font-size: 13px; font-weight: bold; color: #d63031; }
-
-        #settings-screen {
-            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 100;
-            flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;
-        }
-        .shop-card {
-            background: white; padding: 15px; border-radius: 20px; width: 90%; max-width: 300px;
-            text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-        }
-        .shop-item {
-            display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
-            background: rgba(255,255,255,0.9); border-radius: 12px; margin-bottom: 8px;
-            transition: transform 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 90%;
-            max-width: 300px;
-        }
-        .shop-item:hover { transform: translateY(-2px); }
-        .shop-item-name { font-weight: 800; color: #2d3436; font-size: 15px; }
-        .shop-item-btn {
-            padding: 6px 12px; border: none; border-radius: 10px; font-weight: 900;
-            cursor: pointer; transition: all 0.2s; font-size: 13px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
-        .btn-buy { background: linear-gradient(45deg, #f1c40f, #e67e22); color: #fff; }
-        .btn-equip { background: linear-gradient(45deg, #0984e3, #74b9ff); color: #fff; }
-        .btn-equipped { background: #2ecc71; color: #fff; cursor: default; }
-
-        /* Başarı Ekranı Animasyonları */
-        #victory-screen {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
-            background: rgba(255, 255, 255, 0.95); padding: 40px 50px; border-radius: 30px; width: 320px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2); backdrop-filter: blur(10px);
-            display: flex; flex-direction: column; align-items: center; gap: 15px;
-            opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 20;
-        }
-        #victory-screen.show {
-            opacity: 1; transform: translate(-50%, -50%) scale(1); pointer-events: auto;
-        }
-        #victory-title {
-            font-size: 30px; font-weight: 900; color: #2ed573; margin: 0; text-align: center;
-        }
-        #victory-gold {
-            font-size: 42px; font-weight: 900; color: #f1c40f; margin: 0; text-shadow: 0 4px 10px rgba(241, 196, 15, 0.3);
-        }
-        
-        /* Çarpan Barı (Multiplier Bar) CSS */
-        #multiplier-container {
-            width: 100%; height: 40px; border-radius: 20px; position: relative; margin: 10px 0; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .multiplier-zones {
-            display: flex; width: 100%; height: 100%;
-        }
-        .zone {
-            flex: 1; display: flex; justify-content: center; align-items: center; font-weight: 900; color: white; font-size: 16px;
-        }
-        .zone-x2 { background: #74b9ff; }
-        .zone-x3 { background: #0984e3; }
-        .zone-x5 { background: #ff7675; }
-        
-        #multiplier-slider {
-            position: absolute; top: 0; left: 0%; width: 6px; height: 100%; background: #2d3436; 
-            transform: translateX(-50%); transition: none; pointer-events: none; border-radius: 3px; z-index: 5;
-        }
-        .victory-btn {
-            width: 100%; padding: 15px; border: none; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; transition: transform 0.1s;
-        }
-        .victory-btn:active { transform: scale(0.95); }
-        .btn-ad { background: linear-gradient(135deg, #f1c40f, #e67e22); color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); box-shadow: 0 4px 10px rgba(241, 196, 15, 0.4); margin-bottom: 5px; }
-        .btn-normal { background: transparent; color: #b2bec3; font-size: 14px; text-decoration: underline; padding: 5px; }
-        
-        #main-menu-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; display: flex; flex-direction: column;
-            align-items: center; justify-content: flex-end; padding-bottom: 110px; z-index: 5;
-            transition: opacity 0.5s;
-            box-sizing: border-box;
-        }
-        .menu-title {
-            position: absolute; top: 15%; font-size: 80px; font-weight: 900;
-            letter-spacing: 5px; pointer-events: auto;
-            -webkit-text-stroke: 3px #1e272e;
-            text-shadow: 
-                0px 6px 0px #1e272e, 
-                0px 15px 25px rgba(0,0,0,0.6);
-            animation: floatLogo 4s ease-in-out infinite;
-        }
-        @keyframes floatLogo {
-            0%, 100% { transform: translateY(0) rotate(-2deg); }
-            50% { transform: translateY(-15px) rotate(2deg); }
-        }
-        .level-nav-container {
-            display: flex; align-items: center; gap: 15px; margin-bottom: 15px; pointer-events: auto;
-        }
-        .level-nav-btn {
-            background: rgba(30,39,46,0.6); border: 2px solid rgba(255,255,255,0.1);
-            color: white; font-size: 16px; width: 40px; height: 40px;
-            border-radius: 50%; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
-        }
-        .level-nav-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
-        #level-nodes-container {
-            display: flex; gap: 15px;
-        }
-        .level-node {
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(255,255,255,0.2); backdrop-filter: blur(5px);
-            border: 3px solid rgba(255,255,255,0.5); display: flex;
-            align-items: center; justify-content: center; font-size: 20px; font-weight: bold;
-            color: white; transition: all 0.3s; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
-        }
-        .level-node.completed { background: #1dd1a1; border-color: #10ac84; }
-        .level-node.current { background: #feca57; border-color: #ff9f43; transform: scale(1.2); box-shadow: 0px 0px 20px #feca57; }
-        .level-node.locked { background: rgba(0,0,0,0.3); color: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.1); }
-        .play-big-btn {
-            padding: 20px 60px; font-size: 28px; font-weight: 900;
-            background: linear-gradient(45deg, #ff9f43, #e15f41); color: white;
-            border: none; border-radius: 40px; cursor: pointer; pointer-events: auto;
-            box-shadow: 0px 10px 20px rgba(255, 159, 67, 0.5); transition: transform 0.2s; letter-spacing: 2px;
-        }
-        .play-big-btn:active { transform: scale(0.95); }
-        @keyframes pulseRed { 0% { color: #ff4757; transform: scale(1); } 50% { color: #ff7675; transform: scale(1.1); } 100% { color: #ff4757; transform: scale(1); } }
-        #timer-text.danger { animation: pulseRed 0.5s infinite; color: #ff4757 !important; }
-        
-        @media (max-width: 600px) {
-            #main-menu-screen { padding-bottom: 110px; }
-            #level-text { font-size: 14px; top: 62px; right: 10px; left: auto; transform: none; white-space: nowrap; background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 10px; color: white !important;} 
-            #gold-text { font-size: 14px; padding: 6px 12px; top: 20px; right: 10px; }
-            #btn-hamburger, #btn-home { font-size: 14px; padding: 6px 12px; top: 20px; left: 10px; }
-            #timer-text { font-size: 16px; top: 20px; padding: 3px 15px; } 
-            .menu-title { font-size: 12vw; letter-spacing: 2px; -webkit-text-stroke: 2px #1e272e; top: 10%; }
-            .play-big-btn { padding: 15px 40px; font-size: 22px; }
-            
-            /* Bölüm Navigasyon Barını Ekrana Sığdır */
-            .level-nav-container { margin-bottom: 20px; gap: 8px; }
-            .level-nav-btn { width: 35px; height: 35px; font-size: 14px; }
-            #level-nodes-container { gap: 8px; }
-            .level-node { width: 40px; height: 40px; border-width: 2px; font-size: 16px; }
-            
-            #victory-title { font-size: 32px; }
-            #gameover-screen h1 { font-size: 38px !important; }
-            #gameover-screen p { font-size: 16px !important; }
-            #stage-announce { font-size: 45px !important; }
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-</head>
-<body>
-    <div id="ui-container">
-        <div id="tutorial-text" style="display:none; position:absolute; top:80px; left:50%; transform:translateX(-50%); color:white; font-size:20px; font-weight:bold; text-shadow: 0 4px 10px rgba(0,0,0,0.8); z-index:10; text-align:center; pointer-events:none; width:90%;"></div>
-        <div id="stage-announce" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(0.5); opacity:0; color:#feca57; font-size:60px; font-weight:900; text-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index:100; pointer-events:none; transition:all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);"></div>
-        <div id="gameover-screen" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:200; align-items:center; justify-content:center; flex-direction:column; pointer-events:none; opacity:0; transition:opacity 0.3s;">
-            <h1 style="color:#ff4757; font-size:50px; font-weight:900; text-shadow:0 0 20px #ff4757;">SÜRE BİTTİ!</h1>
-            <p style="color:white; font-size:20px; margin-bottom:30px; text-align:center; padding: 0 20px;">Zamana karşı yarışıyordun, biraz daha hızlı olmalısın!</p>
-            <button id="btn-ad-time" onclick="watchAdForTime()" style="padding:15px 40px; margin-bottom:15px; font-size:22px; font-weight:bold; background:linear-gradient(45deg, #0984e3, #74b9ff); color:white; border:none; border-radius:30px; cursor:pointer; pointer-events:auto; box-shadow:0 5px 15px rgba(9, 132, 227, 0.4);">📺 Reklam İzle (+30s)</button>
-            <button id="btn-extra-time" onclick="buyExtraTime()" style="padding:15px 40px; margin-bottom:15px; font-size:22px; font-weight:bold; background:linear-gradient(45deg, #f1c40f, #e67e22); color:white; border:none; border-radius:30px; cursor:pointer; pointer-events:auto; box-shadow:0 5px 15px rgba(241, 196, 15, 0.4);">+30 Saniye Al (500 🪙)</button>
-            <button onclick="retryLevel()" style="padding:15px 40px; font-size:24px; font-weight:bold; background:linear-gradient(45deg, #1dd1a1, #10ac84); color:white; border:none; border-radius:30px; cursor:pointer; pointer-events:auto; box-shadow:0 5px 15px rgba(29, 209, 161, 0.4);">Baştan Başla</button>
-            <button onclick="goToMenu()" style="margin-top:15px; padding:10px 30px; font-size:20px; background:transparent; color:white; border:2px solid white; border-radius:30px; cursor:pointer; pointer-events:auto;">Menüye Dön</button>
-        </div>
-        <!-- Game Top Bar (Sadece oyun esnasında görünür) -->
-        <div id="top-bar" style="display:none;">
-            <div id="level-text">Bölüm 1</div>
-            <div id="timer-text" style="display:none;">⏱ <span id="timer-amount">0</span>s</div>
-            <button id="btn-home" style="display:block; position:absolute; top:20px; left:20px; font-size:18px; font-weight:800; color:#fff; background:rgba(30,39,46,0.8); border:1px solid rgba(255,255,255,0.1); padding:10px 20px; border-radius:20px; cursor:pointer; z-index:15; pointer-events:auto;" onclick="goToMenu()">🏠 Menü</button>
-        </div>
-
-        <!-- Global Main Menu HUD (Sadece ana menüde görünür) -->
-        <div id="top-hud">
-            <div class="hud-gold-capsule">
-                <div class="hud-gold-icon">🪙</div>
-                <div class="hud-gold-text" id="hud-gold-amount">0</div>
-                <div class="hud-gold-plus" onclick="switchTab('MARKET')">+</div>
-            </div>
-            <button class="hud-settings-btn" onclick="openSettings()">⚙️</button>
-        </div>
-
-        <!-- Bottom Navigation Bar (Sadece ana menüde görünür) -->
-        <div id="bottom-nav">
-            <div class="nav-tab" id="tab-market" onclick="switchTab('MARKET')">
-                <div class="nav-icon">🛒</div>
-                <div class="nav-text">Market</div>
-            </div>
-            <div class="nav-tab active" id="tab-home" onclick="switchTab('HOME')">
-                <div class="nav-icon">🏠</div>
-                <div class="nav-text">Ana Ekran</div>
-            </div>
-            <div class="nav-tab" id="tab-profile" onclick="switchTab('PROFILE')">
-                <div class="nav-icon">👤</div>
-                <div class="nav-text">Profil</div>
-            </div>
-        </div>
-
-        <div id="shop-screen">
-            <!-- Market is now a tab, not a popup card -->
-            <div id="shop-items-container"></div>
-        </div>
-        
-        <div id="profile-screen">
-            <div class="profile-card">
-                <div class="avatar-container" id="profile-avatar" onclick="openAvatarSelection()">
-                    <span id="current-avatar-icon">😎</span>
-                </div>
-                <h2 style="margin: 0 0 15px 0; color: #2d3436;">Oyuncu</h2>
-                
-                <div class="stat-row">
-                    <span>🎮 Oynanan Oyun</span>
-                    <span id="stat-games">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>🏆 En Yüksek Seviye</span>
-                    <span id="stat-level">1</span>
-                </div>
-                <div class="stat-row">
-                    <span>🪙 Toplam Altın</span>
-                    <span id="stat-gold">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>📺 İzlenen Reklam</span>
-                    <span id="stat-ads">0</span>
-                </div>
-                <div class="stat-row">
-                    <span>🧩 Açılan Şekiller</span>
-                    <span id="stat-shapes">1/5</span>
-                </div>
-            </div>
-            
-            <div class="profile-card" id="avatar-selection-card" style="display: none;">
-                <h3 style="margin-top:0; color:#2d3436;">Avatar Seç</h3>
-                <div id="avatar-list" class="avatar-grid"></div>
-                <button onclick="closeAvatarSelection()" style="margin-top: 15px; padding: 10px 20px; font-weight: bold; background: #dfe6e9; border: none; border-radius: 8px; cursor: pointer; color: #2d3436; width: 100%;">Geri Dön</button>
-            </div>
-        </div>
-        <div id="settings-screen">
-            <div class="shop-card">
-                <h1 style="margin-top:0; color:#2d3436; font-size:22px;">Ayarlar ⚙️</h1>
-                <div class="shop-item">
-                    <span class="shop-item-name">Ses Efektleri</span>
-                    <button id="btn-toggle-sound" class="shop-item-btn" style="background:#1dd1a1; color:white;" onclick="SoundEngine.toggleMute()">AÇIK</button>
-                </div>
-                <div class="shop-item">
-                    <span class="shop-item-name">Arka Plan Müziği</span>
-                    <button id="btn-toggle-music" class="shop-item-btn" style="background:#1dd1a1; color:white;" onclick="MusicEngine.toggleMute()">AÇIK</button>
-                </div>
-                <div class="shop-item">
-                    <span class="shop-item-name">Titreşim</span>
-                    <button id="btn-toggle-vibration" class="shop-item-btn" style="background:#1dd1a1; color:white;" onclick="toggleVibration()">AÇIK</button>
-                </div>
-                <div class="shop-item">
-                    <span class="shop-item-name">Bildirimler</span>
-                    <button id="btn-toggle-notifications" class="shop-item-btn" style="background:#1dd1a1; color:white;" onclick="toggleNotifications()">AÇIK</button>
-                </div>
-                <div class="shop-item">
-                    <span class="shop-item-name">Destek</span>
-                    <button id="btn-support" class="shop-item-btn" style="background:#0984e3; color:white;" onclick="openSupport()">İLETİŞİM</button>
-                </div>
-                <div class="shop-item" style="margin-top:20px;">
-                    <span class="shop-item-name" style="color:#e74c3c;">İlerlemeyi Sıfırla</span>
-                    <button class="shop-item-btn" style="background:#e74c3c; color:white;" onclick="resetGameProgress()">SIFIRLA</button>
-                </div>
-                <button id="btn-close-settings" style="margin-top:15px; padding:12px 30px; border:none; background:#ff7675; color:white; font-weight:bold; border-radius:12px; cursor:pointer; width:100%;" onclick="closeSettings()">Kapat</button>
-            </div>
-        </div>
-        <div id="main-menu-screen">
-            <div class="menu-title">
-                <span style="color:#ff4757">C</span><span style="color:#feca57">U</span><span style="color:#1dd1a1">B</span><span style="color:#54a0ff">I</span><span style="color:#5f27cd">X</span>
-            </div>
-            <div class="level-nav-container">
-                <button class="level-nav-btn" onclick="scrollLevelView(-1)">&#10094;</button>
-                <div id="level-nodes-container"></div>
-                <button class="level-nav-btn" onclick="scrollLevelView(1)">&#10095;</button>
-            </div>
-            <button class="play-big-btn" id="btn-play-big">OYNA</button>
-        </div>
-        <div id="victory-screen">
-            <h2 id="victory-title">Bölüm Tamamlandı!</h2>
-            <div id="victory-gold">+<span id="victory-gold-amount">0</span> 🪙</div>
-            
-            <div id="multiplier-container">
-                <div class="multiplier-zones">
-                    <div class="zone zone-x2">x2</div>
-                    <div class="zone zone-x3">x3</div>
-                    <div class="zone zone-x5">x5</div>
-                    <div class="zone zone-x3">x3</div>
-                    <div class="zone zone-x2">x2</div>
-                </div>
-                <div id="multiplier-slider"></div>
-            </div>
-            
-            <button id="btn-multiply" class="victory-btn btn-ad">
-                <span id="multiplier-text">x2</span> KATLA!
-            </button>
-            <button id="btn-claim" class="victory-btn btn-normal">Normal Al</button>
-        </div>
-    </div>
-
-    <script>
         const scene = new THREE.Scene();
         scene.background = new THREE.Color('#f8f9fa');
 
@@ -867,8 +437,7 @@
             if (gold >= cost) {
                 gold -= cost;
                 localStorage.setItem('arrowMaze_gold', gold);
-                let hudGold = document.getElementById('hud-gold-amount');
-                if(hudGold) hudGold.innerText = gold;
+                document.getElementById('gold-amount').innerText = gold;
                 giveExtraTime();
             } else {
                 if(typeof SoundEngine !== 'undefined') SoundEngine.playStuck();
@@ -895,8 +464,7 @@
         }
 
         let gold = parseInt(localStorage.getItem('arrowMaze_gold')) || 0;
-        let initialGoldEl = document.getElementById('hud-gold-amount');
-        if(initialGoldEl) initialGoldEl.innerText = gold;
+        document.getElementById('gold-amount').innerText = gold;
 
         let unlockedShapes = JSON.parse(localStorage.getItem('arrowMaze_unlockedShapes')) || ['cube'];
         let currentShape = localStorage.getItem('arrowMaze_currentShape') || 'cube';
@@ -1009,9 +577,11 @@
                 unlockedShapes.push(key);
                 localStorage.setItem('arrowMaze_gold', gold);
                 localStorage.setItem('arrowMaze_unlockedShapes', JSON.stringify(unlockedShapes));
-                let hudGoldEl = document.getElementById('hud-gold-amount');
-                if (hudGoldEl) {
-                    hudGoldEl.innerText = gold;
+                let goldAmountEl = document.getElementById('gold-amount');
+                if (goldAmountEl) {
+                    goldAmountEl.innerText = gold;
+                } else {
+                    document.getElementById('gold-text').innerHTML = `🪙 <span id="gold-amount">${gold}</span>`;
                 }
                 SoundEngine.playCoin();
                 equipShape(key);
@@ -1640,7 +1210,7 @@
             
             let size = 2 + Math.floor((level - 1) / 5);
             
-            // Yeni ve dengeli süre hesaplaması: Toplam blok sayısı * 1.2 saniye. En az 25 saniye.
+            // Yeni ve dengeli süre hesaplaması: Toplam blok sayısı * 1.5 saniye. En az 25 saniye.
             let timeLimit = Math.max(25, Math.floor(blocks.length * 1.2));
             if(level <= 2) timeLimit = 60; // İlk 2 bölüm için ekstra zaman
             startTimer(timeLimit);
@@ -2059,9 +1629,11 @@
                     
                     gold += finalGold;
                     localStorage.setItem('arrowMaze_gold', gold);
-                    let hudGoldEl = document.getElementById('hud-gold-amount');
-                    if (hudGoldEl) {
-                        hudGoldEl.innerText = gold;
+                    let goldAmountEl = document.getElementById('gold-amount');
+                    if (goldAmountEl) {
+                        goldAmountEl.innerText = gold;
+                    } else {
+                        document.getElementById('gold-text').innerHTML = `🪙 <span id="gold-amount">${gold}</span>`;
                     }
 
                     level++;
@@ -2182,13 +1754,4 @@
             renderer.render(scene, camera);
         }
         animate();
-    </script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js')
-            .then((reg) => console.log('Service Worker registered', reg))
-            .catch((err) => console.log('Service Worker not registered', err));
-        }
-    </script>
-</body>
-</html>
+    

@@ -1,0 +1,10 @@
+Music Track 1 (Main Menu Music) License Information
+
+The main menu audio track for this application is 100% procedurally generated in real-time using JavaScript and the Web Audio API.
+
+- No external MP3, WAV, or any pre-recorded audio files are used.
+- No third-party copyright material, samples, or royalty-based content is included.
+- The mathematical algorithms and code generating the audio waves are native to this application.
+
+Ownership: This audio generation code is the proprietary property of the application owner.
+It is entirely royalty-free, original, and compliant with Google Play Store policies regarding copyright.

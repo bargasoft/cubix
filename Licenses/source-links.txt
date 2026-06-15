@@ -1,0 +1,12 @@
+Audio Source Code References
+
+As there are no physical audio files (.mp3, .wav) to link to, the source of the audio is the application's source code itself.
+
+The algorithms generating the sound can be found in the primary HTML/JS file:
+- File: www/index.html
+- Functions: 
+  - playPluck(freq) (Generates the musical notes)
+  - startMenuMusic() (Composes and plays the Main Menu melody)
+  - startGameMusic() (Composes and plays the In-Game melody)
+
+These functions utilize the browser's native Web Audio API (AudioContext) to mathematically synthesize sound waves on the fly.

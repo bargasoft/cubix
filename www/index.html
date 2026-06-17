@@ -102,7 +102,7 @@
         }
         
         .profile-card {
-            background: rgba(255, 255, 255, 0.9); padding: 25px; border-radius: 20px;
+            background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 20px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.15); width: 90%; max-width: 400px;
             text-align: center; margin-bottom: 20px;
         }
@@ -317,7 +317,7 @@
             </div>
             <div class="nav-tab active" id="tab-home" onclick="switchTab('HOME')">
                 <div class="nav-icon">🏠</div>
-                <div class="nav-text">Ana Ekran</div>
+                <div class="nav-text">Merkez</div>
             </div>
             <div class="nav-tab" id="tab-profile" onclick="switchTab('PROFILE')">
                 <div class="nav-icon" id="nav-profile-icon">👤</div>
@@ -327,7 +327,9 @@
 
         <div id="shop-screen">
             <!-- Market is now a tab, not a popup card -->
-            <div id="shop-items-container"></div>
+            <div style="background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); width: 100%; box-sizing: border-box; max-height: 75vh; overflow-y: auto;">
+        <div id="shop-items-container"></div>
+    </div>
         </div>
         
         <div id="profile-screen">
@@ -356,7 +358,7 @@
                 </div>
             </div>
             
-            <div id="avatar-selection-card" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 200; flex-direction: column; justify-content: center; align-items: center;">
+            <div id="avatar-selection-card" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 200; flex-direction: column; justify-content: center; align-items: center;" onclick="if(event.target === this) closeAvatarSelection()">
             <div style="background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); max-height: 80vh; overflow-y: auto;">
                 <h3 style="margin-top:0; color:#2d3436;">Avatar Seçimi</h3>
                 <div id="avatar-list" class="avatar-grid"></div>
@@ -364,7 +366,7 @@
             </div>
         </div>
         </div>
-        <div id="gold-reward-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 250; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;">
+        <div id="gold-reward-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 250; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;" onclick="if(event.target === this) closeGoldModal()">
         <div style="background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 320px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
             <h2 style="margin-top:0; color:#f1c40f; font-weight:900; font-size: 26px;">Gold Kazan 🪙</h2>
             <p style="color:#2d3436; font-size:15px; font-weight:bold; margin-bottom:20px;">Reklam izle, günlük Gold ödülünü al.</p>
@@ -375,16 +377,14 @@
             <button onclick="closeGoldModal()" style="padding: 12px 20px; font-weight: bold; background: #dfe6e9; border: none; border-radius: 12px; cursor: pointer; color: #2d3436; width: 100%;">Kapat</button>
         </div>
     </div>
-    <div id="settings-screen">
+    <div id="settings-screen" onclick="if(event.target === this) closeSettings()">
             <div class="shop-card">
                 <h1 style="margin-top:0; color:#2d3436; font-size:22px;">Ayarlar ⚙️</h1>
-                <div class="shop-item" style="flex-direction: column; align-items: stretch; gap: 6px; margin-bottom: 15px; padding: 12px;">
-    <span class="shop-item-name" style="text-align:left; font-size:14px; color:#636e72;">Oyuncu Adı</span>
-                    <div style="display:flex; gap:8px;">
-        <input type="text" id="input-player-name" placeholder="Adınız" style="flex:1; padding: 8px 12px; border: 2px solid #dfe6e9; border-radius: 8px; font-weight: bold; font-size:14px; outline:none;" maxlength="15">
-        <button class="shop-item-btn" style="background:#0984e3; color:white; padding:8px 16px; font-size:14px; border-radius:8px; font-weight:bold; cursor:pointer; border:none;" onclick="savePlayerName()">KAYDET</button>
-    </div>
-                </div>
+                <div class="shop-item" style="flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,1); border: 2px solid #dfe6e9;">
+    <span class="shop-item-name" style="text-align:center; font-size:16px; color:#2d3436; font-weight:bold;">Oyuncu Adı</span>
+    <input type="text" id="input-player-name" placeholder="Adınız" style="width:100%; box-sizing:border-box; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; font-weight: bold; font-size:16px; outline:none; text-align:center;" maxlength="15">
+    <button class="shop-item-btn" style="background:#0984e3; color:white; width:100%; padding:12px; font-size:16px; border-radius:8px; font-weight:bold; cursor:pointer; border:none;" onclick="savePlayerName()">KAYDET</button>
+</div>
                 <div class="shop-item">
                     <span class="shop-item-name">Ses Efektleri</span>
                     <button id="btn-toggle-sound" class="shop-item-btn" style="background:#1dd1a1; color:white;" onclick="SoundEngine.toggleMute()">AÇIK</button>
@@ -1025,7 +1025,7 @@
         let container = document.getElementById('shop-items-container');
         container.innerHTML = `
             <div style="width: 90%; max-width: 400px; padding-top: 20px;">
-                <h3 style="color:#2d3436; margin-bottom: 15px; text-align:center; font-size:20px;">Market</h3>
+                <h3 style="color:#2d3436; margin-bottom: 20px; text-align:center; font-size:24px; font-weight:bold;">Market</h3>
                 <div class="shop-item" onclick="showShopCategory('cubes')" style="cursor:pointer; background:#fff; border-left: 4px solid #0984e3;">
                     <span class="shop-item-name" style="font-size:18px;">🧊 Küpler</span>
                     <span style="font-size:20px;">➔</span>

@@ -276,6 +276,15 @@
             #gameover-screen p { font-size: 16px !important; }
             #stage-announce { font-size: 45px !important; }
         }
+    
+        @keyframes floatCube {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+            100% { transform: translateY(0px); }
+        }
+        .animated-cube {
+            animation: floatCube 3s ease-in-out infinite;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -325,14 +334,14 @@
             </div>
         </div>
 
-        <div id="shop-screen">
+        <div id="shop-screen" onclick="if(event.target === this) switchTab('HOME')">
             <!-- Market is now a tab, not a popup card -->
             <div style="background: rgba(255, 255, 255, 0.95); padding: 20px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); width: 100%; box-sizing: border-box; max-height: 75vh; overflow-y: auto;">
         <div id="shop-items-container"></div>
     </div>
         </div>
         
-        <div id="profile-screen">
+        <div id="profile-screen" onclick="if(event.target === this) switchTab('HOME')">
             <div class="profile-card">
                 <div class="avatar-container" id="profile-avatar" onclick="openAvatarSelection()">
                     <span id="current-avatar-icon">😎</span>
@@ -380,11 +389,13 @@
     <div id="settings-screen" onclick="if(event.target === this) closeSettings()">
             <div class="shop-card">
                 <h1 style="margin-top:0; color:#2d3436; font-size:22px;">Ayarlar ⚙️</h1>
-                <div class="shop-item" style="flex-direction: column; align-items: stretch; gap: 8px; margin-bottom: 15px; padding: 15px; background: rgba(255,255,255,1); border: 2px solid #dfe6e9;">
-    <span class="shop-item-name" style="text-align:center; font-size:16px; color:#2d3436; font-weight:bold;">Oyuncu Adı</span>
-    <input type="text" id="input-player-name" placeholder="Adınız" style="width:100%; box-sizing:border-box; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; font-weight: bold; font-size:16px; outline:none; text-align:center;" maxlength="15">
-    <button class="shop-item-btn" style="background:#0984e3; color:white; width:100%; padding:12px; font-size:16px; border-radius:8px; font-weight:bold; cursor:pointer; border:none;" onclick="savePlayerName()">KAYDET</button>
-</div>
+                <div class="shop-item" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 15px; border: 2px solid #dfe6e9; border-radius: 12px; background: white;">
+        <div style="display:flex; flex-direction:column; gap:4px; text-align:left;">
+            <span style="font-size:14px; color:#636e72;">Oyuncu Adı</span>
+            <span id="display-player-name" style="font-size:16px; font-weight:bold; color:#2d3436;"></span>
+        </div>
+        <div style="cursor:pointer; font-size:20px; padding:8px;" onclick="openPlayerNameModal()">✏️</div>
+    </div>
                 <div class="shop-item">
                     <span class="shop-item-name">Ses Efektleri</span>
                     <button id="btn-toggle-sound" class="shop-item-btn" style="background:#1dd1a1; color:white;" onclick="SoundEngine.toggleMute()">AÇIK</button>
@@ -817,6 +828,9 @@
         }
         
         const handleRewardSuccess = () => {
+            if (window.isDailyRewardProcessed) return;
+            window.isDailyRewardProcessed = true;
+            
             data.count++;
             localStorage.setItem('cubix_dailyAdCount', data.count);
             gold += rewardAmount;
@@ -824,13 +838,19 @@
             let hudGoldEl = document.getElementById('hud-gold-amount');
             if(hudGoldEl) hudGoldEl.innerText = gold;
             if(typeof SoundEngine !== 'undefined') SoundEngine.playCoin();
+            
+            console.log("Gold Kazan reward callback geldi");
+            console.log("Gold ödülü verildi: +" + rewardAmount);
+            console.log("Günlük sayaç: " + data.count + "/3");
+            
             openGoldModal(); 
         };
         
         if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
             const AdMob = window.Capacitor.Plugins.AdMob;
             try {
-                let hasWatched = false;
+                window.isDailyRewardProcessed = false;
+                console.log("Gold Kazan reklam yüklendi");
                 
                 if (window.dailyRewardListener) { await window.dailyRewardListener.remove(); window.dailyRewardListener = null; }
                 if (window.dailyDismissListener) { await window.dailyDismissListener.remove(); window.dailyDismissListener = null; }
@@ -838,7 +858,7 @@
                 if (window.dailyFailedLoadListener) { await window.dailyFailedLoadListener.remove(); window.dailyFailedLoadListener = null; }
                 
                 window.dailyRewardListener = await AdMob.addListener('onRewardedVideoAdReward', () => {
-                    hasWatched = true;
+                    handleRewardSuccess();
                 });
                 
                 window.dailyDismissListener = await AdMob.addListener('onRewardedVideoAdDismissed', async () => {
@@ -847,14 +867,13 @@
                     if (window.dailyLoadListener) { await window.dailyLoadListener.remove(); window.dailyLoadListener = null; }
                     if (window.dailyFailedLoadListener) { await window.dailyFailedLoadListener.remove(); window.dailyFailedLoadListener = null; }
                     
-                    if (hasWatched) {
-                        handleRewardSuccess();
-                    } else {
-                        openGoldModal(); // Reset modal state if dismissed without reward
+                    if (!window.isDailyRewardProcessed) {
+                        openGoldModal(); 
                     }
                 });
                 
                 window.dailyLoadListener = await AdMob.addListener('onRewardedVideoAdLoaded', async () => {
+                    console.log("Gold Kazan reklam gösterildi");
                     await AdMob.showRewardVideoAd();
                 });
                 
@@ -875,11 +894,10 @@
                 
             } catch (e) {
                 console.warn("AdMob Hatası:", e);
-                alert("Reklam yüklenirken bir hata oluştu.");
+                alert("Reklam yüklenirken hata oluştu.");
                 openGoldModal();
             }
         } else {
-            // SIMULATION REMOVED FOR APK INTEGRITY
             alert("Reklam şu an hazır değil (Test ortamı). Gerçek cihazda ödül alınabilir.");
             openGoldModal();
         }
@@ -1241,8 +1259,8 @@
         }
 
         function openSettings() {
-            let pnInput = document.getElementById('input-player-name');
-            if(pnInput) pnInput.value = playerName;
+            let pnDisp = document.getElementById('display-player-name');
+            if(pnDisp) pnDisp.innerText = playerName;
             document.getElementById('settings-screen').style.display = 'flex';
             let btnSound = document.getElementById('btn-toggle-sound');
             if (SoundEngine.isMuted) {
@@ -1698,7 +1716,13 @@
             }
             
             isTransitioningCamera = true;
-            let size = 2 + Math.floor((level - 1) / 5);
+            let size;
+            if (level <= 5) size = 2;
+            else if (level <= 15) size = 3;
+            else if (level <= 35) size = 4;
+            else if (level <= 70) size = 5;
+            else if (level <= 120) size = 6;
+            else size = 7;
             
             // Ekran oranına göre kamerayı uzaklaştırma (Özellikle dik ekranlı telefonlar için sığdırma)
             let aspectFactor = window.innerWidth < window.innerHeight ? (window.innerHeight / window.innerWidth) : 1;
@@ -1737,7 +1761,13 @@
             isTransitioningCamera = true;
             if(typeof MusicEngine !== 'undefined') MusicEngine.startGameMusic();
             
-            let size = 2 + Math.floor((level - 1) / 5);
+            let size;
+            if (level <= 5) size = 2;
+            else if (level <= 15) size = 3;
+            else if (level <= 35) size = 4;
+            else if (level <= 70) size = 5;
+            else if (level <= 120) size = 6;
+            else size = 7;
             
             // Yeni ve dengeli süre hesaplaması: Toplam blok sayısı * 1.2 saniye. En az 25 saniye.
             let timeLimit = Math.max(25, Math.floor(blocks.length * 1.2));
@@ -1798,7 +1828,13 @@
             
             mazeGroup.position.set(0, 0, 0);
 
-            let size = 2 + Math.floor((level - 1) / 5);
+            let size;
+            if (level <= 5) size = 2;
+            else if (level <= 15) size = 3;
+            else if (level <= 35) size = 4;
+            else if (level <= 70) size = 5;
+            else if (level <= 120) size = 6;
+            else size = 7;
             let maxBlocks = size * size * size;
             let subLevel = (level - 1) % 5;
             
@@ -2287,6 +2323,49 @@
             navigator.serviceWorker.register('./sw.js')
             .then((reg) => console.log('Service Worker registered', reg))
             .catch((err) => console.log('Service Worker not registered', err));
+        }
+    </script>
+
+    <div id="player-name-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 350; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto;" onclick="if(event.target === this) closePlayerNameModal()">
+        <div style="background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 300px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2);">
+            <h3 style="margin-top:0; color:#2d3436;">Oyuncu Adını Değiştir</h3>
+            <input type="text" id="modal-input-player-name" placeholder="Adınız" style="width:100%; box-sizing:border-box; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; font-weight: bold; font-size:16px; outline:none; text-align:center; margin-bottom: 15px;" maxlength="16">
+            <div style="display:flex; gap:10px;">
+                <button style="flex:1; padding:12px; background:#dfe6e9; color:#2d3436; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="closePlayerNameModal()">Vazgeç</button>
+                <button style="flex:1; padding:12px; background:#0984e3; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="savePlayerNameFromModal()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openPlayerNameModal() {
+            document.getElementById('modal-input-player-name').value = window.playerName;
+            document.getElementById('player-name-modal').style.display = 'flex';
+        }
+        function closePlayerNameModal() {
+            document.getElementById('player-name-modal').style.display = 'none';
+        }
+        function savePlayerNameFromModal() {
+            let rawVal = document.getElementById('modal-input-player-name').value;
+            let val = rawVal.trim();
+            if(val.length < 3) {
+                alert("Oyuncu adı en az 3 karakter olmalıdır.");
+                return;
+            }
+            if(val.length > 16) {
+                alert("Oyuncu adı en fazla 16 karakter olmalıdır.");
+                return;
+            }
+            if(val.toLowerCase() === window.playerName.toLowerCase()) {
+                alert("Bu ismi zaten kullanıyorsunuz.");
+                return;
+            }
+            window.playerName = val;
+            localStorage.setItem('cubix_playerName', window.playerName);
+            let pnDisp = document.getElementById('display-player-name');
+            if(pnDisp) pnDisp.innerText = window.playerName;
+            let profDisp = document.getElementById('profile-name');
+            if(profDisp) profDisp.innerText = window.playerName;
+            closePlayerNameModal();
         }
     </script>
 </body>

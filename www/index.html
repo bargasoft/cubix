@@ -871,6 +871,7 @@
     let dailyAdListener = null;
 
     window.watchDailyAd = async function() {
+        console.log("Gold Kazan butonuna basıldı");
         let data = getDailyAdData();
         if (data.count >= 3) return;
         
@@ -881,7 +882,16 @@
         if(btn) {
             btn.innerText = "Yükleniyor...";
             btn.style.pointerEvents = "none";
+            btn.style.opacity = "0.5";
         }
+        
+        const restoreButton = () => {
+            if(btn) {
+                btn.innerText = `📺 Reklam İzle (+${rewardAmount} 🪙)`;
+                btn.style.pointerEvents = "auto";
+                btn.style.opacity = "1";
+            }
+        };
         
         const handleRewardSuccess = () => {
             if (window.isDailyRewardProcessed) return;
@@ -899,63 +909,83 @@
             console.log("Gold ödülü verildi: +" + rewardAmount);
             console.log("Günlük sayaç: " + data.count + "/3");
             
+            restoreButton();
             openGoldModal(); 
         };
         
-        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+        if (isAdMobReady && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
             const AdMob = window.Capacitor.Plugins.AdMob;
+            
+            let done = false;
+            const finishWithFailure = () => {
+                if (done) return;
+                done = true;
+                restoreButton();
+                alert("Reklam şu an hazır değil, lütfen tekrar deneyin.");
+            };
+
+            let failsafe = setTimeout(() => {
+                if (!done) {
+                    console.warn("Gold Kazan reklam yükleme timeout oldu.");
+                    finishWithFailure();
+                }
+            }, 6000);
+
             try {
                 window.isDailyRewardProcessed = false;
-                console.log("Gold Kazan reklam yüklendi");
                 
-                if (window.dailyRewardListener) { await window.dailyRewardListener.remove(); window.dailyRewardListener = null; }
-                if (window.dailyDismissListener) { await window.dailyDismissListener.remove(); window.dailyDismissListener = null; }
-                if (window.dailyLoadListener) { await window.dailyLoadListener.remove(); window.dailyLoadListener = null; }
-                if (window.dailyFailedLoadListener) { await window.dailyFailedLoadListener.remove(); window.dailyFailedLoadListener = null; }
+                if (window.dailyRewardListener) { window.dailyRewardListener.remove(); window.dailyRewardListener = null; }
+                if (window.dailyDismissListener) { window.dailyDismissListener.remove(); window.dailyDismissListener = null; }
+                if (window.dailyLoadListener) { window.dailyLoadListener.remove(); window.dailyLoadListener = null; }
+                if (window.dailyFailedLoadListener) { window.dailyFailedLoadListener.remove(); window.dailyFailedLoadListener = null; }
                 
                 window.dailyRewardListener = await AdMob.addListener('onRewardedVideoAdReward', () => {
                     handleRewardSuccess();
                 });
                 
                 window.dailyDismissListener = await AdMob.addListener('onRewardedVideoAdDismissed', async () => {
-                    if (window.dailyRewardListener) { await window.dailyRewardListener.remove(); window.dailyRewardListener = null; }
-                    if (window.dailyDismissListener) { await window.dailyDismissListener.remove(); window.dailyDismissListener = null; }
-                    if (window.dailyLoadListener) { await window.dailyLoadListener.remove(); window.dailyLoadListener = null; }
-                    if (window.dailyFailedLoadListener) { await window.dailyFailedLoadListener.remove(); window.dailyFailedLoadListener = null; }
+                    if (window.dailyRewardListener) { window.dailyRewardListener.remove(); window.dailyRewardListener = null; }
+                    if (window.dailyDismissListener) { window.dailyDismissListener.remove(); window.dailyDismissListener = null; }
+                    if (window.dailyLoadListener) { window.dailyLoadListener.remove(); window.dailyLoadListener = null; }
+                    if (window.dailyFailedLoadListener) { window.dailyFailedLoadListener.remove(); window.dailyFailedLoadListener = null; }
                     
                     if (!window.isDailyRewardProcessed) {
-                        openGoldModal(); 
+                        restoreButton();
                     }
+                    if (!done) { done = true; clearTimeout(failsafe); }
                 });
                 
                 window.dailyLoadListener = await AdMob.addListener('onRewardedVideoAdLoaded', async () => {
-                    console.log("Gold Kazan reklam gösterildi");
-                    await AdMob.showRewardVideoAd();
+                    if (done) return;
+                    clearTimeout(failsafe);
+                    console.log("Gold Kazan reklam gösteriliyor");
+                    await AdMob.showRewardVideoAd().catch(e => {
+                        console.error("Show error:", e);
+                        finishWithFailure();
+                    });
                 });
                 
                 window.dailyFailedLoadListener = await AdMob.addListener('onRewardedVideoAdFailedToLoad', async () => {
-                    if (window.dailyRewardListener) { await window.dailyRewardListener.remove(); window.dailyRewardListener = null; }
-                    if (window.dailyDismissListener) { await window.dailyDismissListener.remove(); window.dailyDismissListener = null; }
-                    if (window.dailyLoadListener) { await window.dailyLoadListener.remove(); window.dailyLoadListener = null; }
-                    if (window.dailyFailedLoadListener) { await window.dailyFailedLoadListener.remove(); window.dailyFailedLoadListener = null; }
-                    
-                    alert("Reklam şu an hazır değil, lütfen daha sonra tekrar deneyin.");
-                    openGoldModal();
+                    console.warn("Gold Kazan reklam onRewardedVideoAdFailedToLoad tetiklendi.");
+                    finishWithFailure();
                 });
                 
+                console.log("Gold Kazan reklam yükleme başladı");
                 await AdMob.prepareRewardVideoAd({
-                    adId: "YOUR_ADMOB_REWARDED_ID_HERE", // Test ID
+                    adId: "YOUR_ADMOB_REWARDED_ID_HERE", // Gerçek ID korunacak
                     isTesting: false
+                }).catch(e => {
+                    console.error("Prepare error:", e);
+                    finishWithFailure();
                 });
                 
             } catch (e) {
                 console.warn("AdMob Hatası:", e);
-                alert("Reklam yüklenirken hata oluştu.");
-                openGoldModal();
+                finishWithFailure();
             }
         } else {
-            alert("Reklam şu an hazır değil (Test ortamı). Gerçek cihazda ödül alınabilir.");
-            openGoldModal();
+            restoreButton();
+            alert("Reklam şu an hazır değil, lütfen tekrar deneyin.");
         }
     };
 

@@ -3,3 +3,5 @@ android/build/
 android/app/build/
 android/.gradle/
 *.local
+android/release.keystore
+android/local.properties

@@ -729,8 +729,8 @@
                     });
                     
                     await AdMob.prepareInterstitial({
-                        adId: "ca-app-pub-3940256099942544/1033173712", // Google Test Geçiş Reklamı
-                        isTesting: true
+                        adId: "YOUR_ADMOB_INTERSTITIAL_ID_HERE", // Google Test Geçiş Reklamı
+                        isTesting: false
                     });
                 } catch (e) {
                     console.warn("Interstitial Hatası:", e);
@@ -801,8 +801,8 @@
                     });
                     
                     await AdMob.prepareRewardVideoAd({
-                        adId: "ca-app-pub-3940256099942544/5224354917", // Google'ın Resmi Test Reklamı
-                        isTesting: true
+                        adId: "YOUR_ADMOB_REWARDED_ID_HERE", // Google'ın Resmi Test Reklamı
+                        isTesting: false
                     });
                 } catch (e) {
                     console.warn("AdMob Hatası:", e);
@@ -944,8 +944,8 @@
                 });
                 
                 await AdMob.prepareRewardVideoAd({
-                    adId: "ca-app-pub-3940256099942544/5224354917", // Test ID
-                    isTesting: true
+                    adId: "YOUR_ADMOB_REWARDED_ID_HERE", // Test ID
+                    isTesting: false
                 });
                 
             } catch (e) {
@@ -2343,8 +2343,8 @@
                             });
 
                             await AdMob.prepareRewardVideoAd({
-                                adId: "ca-app-pub-3940256099942544/5224354917", 
-                                isTesting: true
+                                adId: "YOUR_ADMOB_REWARDED_ID_HERE", 
+                                isTesting: false
                             });
                         } catch (e) {
                             console.warn("AdMob Hatası:", e);

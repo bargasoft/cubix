@@ -1,16 +1,26 @@
-# CUBIX 3D Puzzle
+# CUBIX v1
 
-CUBIX is a modern, mobile-friendly 3D puzzle game where players interact with geometric shapes, collect gold, unlock cosmetics, and progress through increasingly challenging levels.
+## Açıklama
+CUBIX, modern ve pürüzsüz 3 boyutlu grafikleri, esnek ve "responsive" arayüz tasarımı ile oyunculara keyifli bir bulmaca/zeka deneyimi sunan mobil oyundur. Oyun içerisinde farklı boyutlardaki küp yapılarını çözerek altın (Gold) kazanabilir, kazandığınız altınlarla profilinizi, avatarlarınızı ve oyun mekaniklerini geliştirebilirsiniz.
 
-## Features
-- **3D Gameplay:** Fully interactive 3D shapes built on Three.js.
-- **Level Progression:** Dynamic levels and difficulty scaling.
-- **Cosmetics Shop:** Unlock unique shapes and avatars using in-game gold.
-- **Settings:** Audio controls and performance options.
-- **Mobile Optimized:** Built for touch controls with CapacitorJS and Capacitor AdMob integration.
+## Özellikler
+* Tamamen Responsive UI (Küçük ekranlardan tabletlere kadar destekler)
+* Safe-Area Entegrasyonu (iPhone ve Android çentik uyumluluğu)
+* Dinamik Kamera (Tüm mobil cihaz en/boy oranlarında objelerin sığmasını garanti eder)
+* AdMob Reklam Sistemi (Ödüllü altın ve süre reklamları)
+* Gelişmiş Profil & Market Sistemi
+* LocalStorage tabanlı oyuncu adı ve skor kaydetme
 
-## License & Copyright
-**Copyright (c) 2026 BarGa Soft Yazılım - Hüseyin Silahlı. All Rights Reserved.**
+## Yükleme
+Uygulama Capacitor kullanılarak inşa edilmiştir. `app-release.aab` dosyasını Google Play Console'a yükleyebilirsiniz.
 
-This software and associated documentation files (the "Software") are proprietary and confidential.
-Unauthorized copying, distribution, modification, or use of this Software, via any medium, is strictly prohibited.
+> **ÖNEMLİ NOT:** Reklam birimlerinin aktif olarak çalışabilmesi için `www/index.html` içerisindeki `YOUR_ADMOB_REWARDED_ID_HERE` ve `AndroidManifest.xml` içerisindeki `YOUR_ADMOB_APP_ID_HERE` test anahtarlarının kendi gerçek AdMob kimliklerinizle değiştirilmesi gerekmektedir! Mevcut sürüm "Test ID" kullanılmasını engelleyecek şekilde release imzasıyla kapatılmıştır.
+
+## Derleme (Sadece Geliştiriciler İçin)
+Aşağıdaki komutlarla kendi `AAB` dosyanızı tekrar oluşturabilirsiniz:
+
+```bash
+npx cap sync
+cd android
+./gradlew bundleRelease
+```

@@ -5,3 +5,5 @@ android/.gradle/
 *.local
 android/release.keystore
 android/local.properties
+*.pem
+*.jks

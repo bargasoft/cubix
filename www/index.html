@@ -305,7 +305,7 @@
         <div id="top-bar" style="display:none;">
             <div id="level-text">Bölüm 1</div>
             <div id="timer-text" style="display:none;">⏱ <span id="timer-amount">0</span>s</div>
-            <button id="btn-home" style="display:block; position:absolute; top:20px; left:20px; font-size:18px; font-weight:800; color:#fff; background:rgba(30,39,46,0.8); border:1px solid rgba(255,255,255,0.1); padding:10px 20px; border-radius:20px; cursor:pointer; z-index:15; pointer-events:auto;" onclick="goToMenu()">🏠 Menü</button>
+            <button id="btn-home" style="display:block; position:absolute; top:20px; left:20px; font-size:18px; font-weight:800; color:#fff; background:rgba(30,39,46,0.8); border:1px solid rgba(255,255,255,0.1); padding:10px 20px; border-radius:20px; cursor:pointer; z-index:15; pointer-events:auto;" onclick="goToMenu()">⬅️ Menü</button>
         </div>
 
         <!-- Global Main Menu HUD (Sadece ana menüde görünür) -->
@@ -325,7 +325,7 @@
                 <div class="nav-text">Market</div>
             </div>
             <div class="nav-tab active" id="tab-home" onclick="switchTab('HOME')">
-                <div class="nav-icon">🏠</div>
+                <div class="nav-icon animated-cube" style="display:inline-block;">🧊</div>
                 <div class="nav-text">Merkez</div>
             </div>
             <div class="nav-tab" id="tab-profile" onclick="switchTab('PROFILE')">
@@ -2338,7 +2338,8 @@
     </div>
     <script>
         function openPlayerNameModal() {
-            document.getElementById('modal-input-player-name').value = window.playerName;
+            // playerName is a global let variable from the main script
+            document.getElementById('modal-input-player-name').value = playerName;
             document.getElementById('player-name-modal').style.display = 'flex';
         }
         function closePlayerNameModal() {
@@ -2355,16 +2356,20 @@
                 alert("Oyuncu adı en fazla 16 karakter olmalıdır.");
                 return;
             }
-            if(val.toLowerCase() === window.playerName.toLowerCase()) {
+            if(val.toLowerCase() === playerName.toLowerCase()) {
                 alert("Bu ismi zaten kullanıyorsunuz.");
                 return;
             }
-            window.playerName = val;
-            localStorage.setItem('cubix_playerName', window.playerName);
+            // Update the global let variable
+            playerName = val;
+            localStorage.setItem('cubix_playerName', playerName);
+            
             let pnDisp = document.getElementById('display-player-name');
-            if(pnDisp) pnDisp.innerText = window.playerName;
+            if(pnDisp) pnDisp.innerText = playerName;
+            
             let profDisp = document.getElementById('profile-name');
-            if(profDisp) profDisp.innerText = window.playerName;
+            if(profDisp) profDisp.innerText = playerName;
+            
             closePlayerNameModal();
         }
     </script>

@@ -649,7 +649,7 @@
                         isTesting: true
                     });
                 } catch (e) {
-                    console.error("Interstitial Hatası:", e);
+                    console.warn("Interstitial Hatası:", e);
                     callback();
                 }
             } else {
@@ -721,7 +721,7 @@
                         isTesting: true
                     });
                 } catch (e) {
-                    console.error("AdMob Hatası:", e);
+                    console.warn("AdMob Hatası:", e);
                     btn.innerHTML = "🎥 Reklam İzle (+30s)";
                     btn.style.pointerEvents = "auto";
                     // Hata olursa yine de oyuncuyu mağdur etme
@@ -814,7 +814,7 @@
                         isTesting: true
                     });
                 } catch (e) {
-                    console.error("AdMob Hatası:", e);
+                    console.warn("AdMob Hatası:", e);
                     if(btn) {
                         btn.innerHTML = `📺 Reklam İzle (+${currentReward} 🪙)`;
                         btn.style.pointerEvents = "auto";
@@ -2156,7 +2156,7 @@
                                 isTesting: true
                             });
                         } catch (e) {
-                            console.error("AdMob Hatası:", e);
+                            console.warn("AdMob Hatası:", e);
                             goldAmountText.innerText = finalGold + " (" + mult + "X!)";
                             goldAmountText.style.color = "#ff7675";
                             if (mult >= 3) ParticleEngine.spawnGoldConfetti();
